@@ -1,4 +1,4 @@
-NAME?=sabito
+NAME?=rosny
 COMMAND?=bash
 OPTIONS?=
 
