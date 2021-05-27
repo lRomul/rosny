@@ -1,12 +1,12 @@
 import time
 import pytest
 
-from rosny.timing import DeltaTimeProfiler
+from rosny.timing import LoopTimeMeter
 
 
 @pytest.mark.parametrize("start", [True, False])
 def test_delta_time_profiler(start):
-    profiler = DeltaTimeProfiler()
+    profiler = LoopTimeMeter()
 
     if start:
         time.sleep(0.1)

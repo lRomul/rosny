@@ -1,7 +1,7 @@
 import time
 
 
-class DeltaTimeProfiler:
+class LoopTimeMeter:
     def __init__(self):
         self.mean = 0.0
         self.count = 0
