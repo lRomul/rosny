@@ -12,7 +12,7 @@ class ThreadStream(AbstractStream):
         if name is None:
             name = f"{self.__class__.__name__}_{id(self)}"
         self.logger = setup_logger(name)
-        self.logger.info(f"Creating stream")
+        self.logger.info("Creating stream")
 
         self.name: str = name
         self.state = state
@@ -55,25 +55,25 @@ class ThreadStream(AbstractStream):
                 self.state.clear_exit()
 
     def start(self):
-        self.logger.info(f"Starting stream")
+        self.logger.info("Starting stream")
         if self._stopped:
             if self._thread is None:
                 self.on_start_begin()
                 self._stopped = False
                 self._start_thread()
                 self.on_start_end()
-                self.logger.info(f"Stream started")
+                self.logger.info("Stream started")
             else:
-                self.logger.error(f"Stream stopped but not joined")
+                self.logger.error("Stream stopped but not joined")
         else:
-            self.logger.error(f"Stream is already started")
+            self.logger.error("Stream is already started")
 
     def stop(self):
         if not self._stopped:
             self.on_stop_begin()
             self._stopped = True
             self.on_stop_end()
-            self.logger.info(f"Stop stream")
+            self.logger.info("Stop stream")
 
     def wait(self, timeout: Optional[float] = None):
         self.logger.info(
@@ -84,11 +84,11 @@ class ThreadStream(AbstractStream):
         self.on_wait_end()
         if self.state.exit_is_set():
             self.logger.info(
-                f"Stream stop waiting, exit event is set"
+                "Stream stop waiting, exit event is set"
             )
         else:
             self.logger.info(
-                f"Stream stop waiting, timeout exceeded."
+                "Stream stop waiting, timeout exceeded."
             )
 
     def join(self, timeout: Optional[float] = None):
@@ -96,9 +96,9 @@ class ThreadStream(AbstractStream):
             self.on_join_begin()
             self._join_thread(timeout=timeout)
             self.on_join_end()
-            self.logger.info(f"Stream joined")
+            self.logger.info("Stream joined")
         else:
-            self.logger.error(f"Stream is already joined")
+            self.logger.error("Stream is already joined")
 
     def _init_signals(self):
         signal.signal(signal.SIGINT, self._handle_signal)
