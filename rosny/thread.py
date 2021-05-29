@@ -1,18 +1,18 @@
 import signal
-import logging
 from threading import Thread
 from typing import Optional
 
 from rosny.state import State
 from rosny.abstract import AbstractStream
+from rosny.utils import setup_logger
 
 
 class ThreadStream(AbstractStream):
     def __init__(self, state=None, name=None):
         if name is None:
             name = f"{self.__class__.__name__}_{id(self)}"
-        self.logger = logging.getLogger(name)
-        self.logger.info(f"Create stream '{name}'")
+        self.logger = setup_logger(name)
+        self.logger.info(f"Creating stream")
 
         self.name: str = name
         self.state = state
@@ -55,47 +55,40 @@ class ThreadStream(AbstractStream):
                 self.state.clear_exit()
 
     def start(self):
-        self.logger.info(f"Start stream '{self.name}'")
+        self.logger.info(f"Starting stream")
         if self._stopped:
             if self._thread is None:
                 self.on_start_begin()
                 self._stopped = False
                 self._start_thread()
                 self.on_start_end()
-                self.logger.info(f"Stream '{self.name}' started")
+                self.logger.info(f"Stream started")
             else:
-                self.logger.error(
-                    f"Stream '{self.name}' stopped but not joined"
-                )
+                self.logger.error(f"Stream stopped but not joined")
         else:
-            self.logger.error(f"Stream '{self.name}' is already started")
+            self.logger.error(f"Stream is already started")
 
     def stop(self):
         if not self._stopped:
             self.on_stop_begin()
             self._stopped = True
             self.on_stop_end()
-            self.logger.info(f"Stop stream '{self.name}'")
+            self.logger.info(f"Stop stream")
 
     def wait(self, timeout: Optional[float] = None):
-        if isinstance(self.state, State):
+        self.logger.info(
+            f"Stream start waiting with timeout {timeout}"
+        )
+        self.on_wait_begin()
+        self.state.wait_exit(timeout=timeout)
+        self.on_wait_end()
+        if self.state.exit_is_set():
             self.logger.info(
-                f"Stream '{self.name}' start waiting with timeout {timeout}"
+                f"Stream stop waiting, exit event is set"
             )
-            self.on_wait_begin()
-            self.state.wait_exit(timeout=timeout)
-            self.on_wait_end()
-            if self.state.exit_is_set():
-                self.logger.info(
-                    f"Stream '{self.name}' stop waiting, exit event is set"
-                )
-            else:
-                self.logger.info(
-                    f"Stream '{self.name}' stop waiting, timeout exceeded."
-                )
         else:
-            self.logger.error(
-                f"Stream '{self.name}' can't wait without BaseState"
+            self.logger.info(
+                f"Stream stop waiting, timeout exceeded."
             )
 
     def join(self, timeout: Optional[float] = None):
@@ -103,9 +96,9 @@ class ThreadStream(AbstractStream):
             self.on_join_begin()
             self._join_thread(timeout=timeout)
             self.on_join_end()
-            self.logger.info(f"Stream '{self.name}' joined")
+            self.logger.info(f"Stream joined")
         else:
-            self.logger.error(f"Stream '{self.name}' is already joined")
+            self.logger.error(f"Stream is already joined")
 
     def _init_signals(self):
         signal.signal(signal.SIGINT, self._handle_signal)

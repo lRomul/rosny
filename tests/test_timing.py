@@ -5,7 +5,7 @@ from rosny.timing import LoopTimeMeter
 
 
 @pytest.mark.parametrize("start", [True, False])
-def test_delta_time_profiler(start):
+def test_loop_time_meter(start):
     profiler = LoopTimeMeter()
 
     if start:
