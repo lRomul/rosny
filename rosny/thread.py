@@ -4,13 +4,13 @@ from typing import Optional
 
 from rosny.state import State
 from rosny.abstract import AbstractStream
-from rosny.utils import setup_logger
+from rosny.utils import setup_logger, default_object_name
 
 
 class ThreadStream(AbstractStream):
     def __init__(self, state=None, name=None):
         if name is None:
-            name = f"{self.__class__.__name__}_{id(self)}"
+            name = default_object_name(self)
         self.logger = setup_logger(name)
         self.logger.info("Creating stream")
 
