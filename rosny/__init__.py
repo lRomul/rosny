@@ -1,4 +1,4 @@
-from rosny.state import State
-from rosny.thread import ThreadStream
+from rosny.basestate import BaseState
+from rosny.thread import BaseThreadStream
 
 __version__ = '0.0.1'

@@ -2,12 +2,12 @@ import abc
 import logging
 from typing import Optional
 
-from rosny.state import State
+from rosny.basestate import BaseState
 
 
 class AbstractStream(abc.ABC):
     name: str
-    state: State
+    state: BaseState
     logger: logging.Logger
 
     def on_start_begin(self):

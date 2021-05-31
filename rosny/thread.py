@@ -2,12 +2,12 @@ import signal
 from threading import Thread
 from typing import Optional
 
-from rosny.state import State
+from rosny.basestate import BaseState
 from rosny.abstract import AbstractStream
 from rosny.utils import setup_logger, default_object_name
 
 
-class ThreadStream(AbstractStream):
+class BaseThreadStream(AbstractStream):
     def __init__(self, state=None, name=None):
         if name is None:
             name = default_object_name(self)
@@ -34,7 +34,7 @@ class ThreadStream(AbstractStream):
 
     def on_catch_exception(self, exception: BaseException):
         self.logger.exception(exception)
-        if isinstance(self.state, State):
+        if isinstance(self.state, BaseState):
             self.state.set_exit()
 
     def _start_thread(self):
@@ -51,7 +51,7 @@ class ThreadStream(AbstractStream):
             )
         else:
             self._thread = None
-            if isinstance(self.state, State):
+            if isinstance(self.state, BaseState):
                 self.state.clear_exit()
 
     def start(self):
@@ -106,7 +106,7 @@ class ThreadStream(AbstractStream):
 
     def _handle_signal(self, signum, frame):
         self.logger.info(f"Handle signal: {signal.Signals(signum).name}")
-        if isinstance(self.state, State):
+        if isinstance(self.state, BaseState):
             self.state.set_exit()
         self.stop()
 

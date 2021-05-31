@@ -2,7 +2,7 @@ import threading
 from typing import Optional
 
 
-class State:
+class BaseState:
     def __init__(self):
         self._exit_event = threading.Event()
 
