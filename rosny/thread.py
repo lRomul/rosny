@@ -1,26 +1,18 @@
-import signal
 from threading import Thread
 from typing import Optional
 
 from rosny.basestate import BaseState
 from rosny.abstract import AbstractStream
-from rosny.utils import setup_logger, default_object_name
 
 
 class BaseThreadStream(AbstractStream):
-    def __init__(self, state=None, name=None):
-        if name is None:
-            name = default_object_name(self)
-        self.logger = setup_logger(name)
-        self.logger.info("Creating stream")
-
-        self.name: str = name
-        self.state = state
+    def __init__(self,
+                 state: Optional[BaseState] = None,
+                 name: Optional[str] = None):
+        super().__init__(state=state, name=name)
 
         self._thread = None
         self._stopped = True
-
-        self._init_signals()
 
     def work(self):
         raise NotImplementedError
@@ -34,13 +26,13 @@ class BaseThreadStream(AbstractStream):
 
     def on_catch_exception(self, exception: BaseException):
         self.logger.exception(exception)
-        if isinstance(self.state, BaseState):
-            self.state.set_exit()
+        self.state.set_exit()
 
     def _start_thread(self):
         self._thread = Thread(target=self.work_loop,
                               name=self.name,
                               daemon=True)
+        self._stopped = False
         self._thread.start()
 
     def _join_thread(self, timeout):
@@ -51,15 +43,13 @@ class BaseThreadStream(AbstractStream):
             )
         else:
             self._thread = None
-            if isinstance(self.state, BaseState):
-                self.state.clear_exit()
+            self.state.clear_exit()
 
     def start(self):
         self.logger.info("Starting stream")
         if self._stopped:
             if self._thread is None:
                 self.on_start_begin()
-                self._stopped = False
                 self._start_thread()
                 self.on_start_end()
                 self.logger.info("Stream started")
@@ -99,16 +89,3 @@ class BaseThreadStream(AbstractStream):
             self.logger.info("Stream joined")
         else:
             self.logger.error("Stream is already joined")
-
-    def _init_signals(self):
-        signal.signal(signal.SIGINT, self._handle_signal)
-        signal.signal(signal.SIGTERM, self._handle_signal)
-
-    def _handle_signal(self, signum, frame):
-        self.logger.info(f"Handle signal: {signal.Signals(signum).name}")
-        if isinstance(self.state, BaseState):
-            self.state.set_exit()
-        self.stop()
-
-    def __del__(self):
-        self.stop()
