@@ -1,4 +1,5 @@
 import time
+from typing import Optional
 
 
 class LoopTimeMeter:
@@ -22,3 +23,11 @@ class LoopTimeMeter:
         self.mean = 0.0
         self.count = 0
         self.restart_time = time.perf_counter()
+
+
+class LoopRateManager:
+    def __init__(self, loop_rate: Optional[float] = None):
+        self.loop_rate = loop_rate
+
+    def call(self):
+        pass
