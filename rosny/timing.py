@@ -26,8 +26,32 @@ class LoopTimeMeter:
 
 
 class LoopRateManager:
-    def __init__(self, loop_rate: Optional[float] = None):
+    def __init__(self,
+                 loop_rate: Optional[float] = None,
+                 min_sleep: float = 1e-7):
+        self._time_meter = LoopTimeMeter()
+        self._loop_sec = None
+        self._mean_delta_sleep = None
+        self._limit_loop_rate = None
+        self._prev_work_time = time.perf_counter()
         self.loop_rate = loop_rate
+        self.min_sleep = min_sleep
+
+        self.loop_rate = loop_rate
+
+    @property
+    def loop_rate(self):
+        return self._loop_rate
+
+    @loop_rate.setter
+    def loop_rate(self, value):
+        self._loop_rate = value
+        if value is None:
+            self._loop_time = None
+            self._mean_delta_sleep = None
+        else:
+            self._loop_time = 1.0 / self.loop_rate
+            self._mean_delta_sleep = 0.
 
     def call(self):
         pass
