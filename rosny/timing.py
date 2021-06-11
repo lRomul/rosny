@@ -29,7 +29,7 @@ class LoopRateManager:
     def __init__(self,
                  loop_rate: Optional[float] = None,
                  min_sleep: float = 1e-7,
-                 profiler_interval: float = 30.0):
+                 profiler_interval: float = 1.0):
         self._time_meter = LoopTimeMeter()
         self._loop_time = None
         self._mean_delta_sleep = None
@@ -54,16 +54,13 @@ class LoopRateManager:
             self._loop_time = 1.0 / self.loop_rate
             self._mean_delta_sleep = 0.
 
-    def _profiling(self):
+    def _measure(self):
         loop_time = self._time_meter.mean
-        loop_rate = 1 / loop_time if loop_time else float('inf')
+        # loop_rate = 1 / loop_time if loop_time else float('inf')
 
         if self._loop_rate is not None:
             self._mean_delta_sleep += loop_time - self._loop_time
             self._mean_delta_sleep = max(self._mean_delta_sleep, 0)
-
-        self.loop_time = loop_time
-        self.loop_rate = loop_rate
 
         self._time_meter.reset()
 
@@ -84,6 +81,6 @@ class LoopRateManager:
         self._time_meter.end()
         if self._time_meter.prev_time - self._time_meter.restart_time \
                 > self.profiler_interval:
-            self._profiling()
+            self._measure()
         self._sleep()
         self._prev_work_time = time.perf_counter()
