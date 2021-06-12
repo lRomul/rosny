@@ -3,7 +3,7 @@ import logging
 
 
 def default_object_name(object_):
-    return f"{object_.__class__.__name__}-{str(id(object_))[:6]}"
+    return f"{object_.__class__.__name__}-{str(id(object_))}"
 
 
 def setup_logger(name):
