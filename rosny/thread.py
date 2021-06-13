@@ -1,7 +1,8 @@
 from threading import Thread
 from typing import Optional
 
-from rosny.basestate import BaseState
+from rosny.state import BaseState
+from rosny.timing import LoopRateManager
 from rosny.abstract import AbstractStream
 
 
@@ -11,15 +12,13 @@ class BaseThreadStream(AbstractStream):
                  name: Optional[str] = None,
                  loop_rate: Optional[float] = None,
                  min_sleep: float = 1e-9):
-        super().__init__(
-            state=state,
-            name=name,
-            loop_rate=loop_rate,
-            min_sleep=min_sleep
-        )
+        super().__init__(state=state, name=name)
 
         self._thread = None
         self._stopped = True
+
+        self._rate_manager = LoopRateManager(loop_rate=loop_rate,
+                                             min_sleep=min_sleep)
 
     def work(self):
         raise NotImplementedError
@@ -74,20 +73,14 @@ class BaseThreadStream(AbstractStream):
             self.logger.info("Stop stream")
 
     def wait(self, timeout: Optional[float] = None):
-        self.logger.info(
-            f"Stream start waiting with timeout {timeout}"
-        )
+        self.logger.info(f"Stream start waiting with timeout {timeout}")
         self.on_wait_begin()
         self.state.wait_exit(timeout=timeout)
         self.on_wait_end()
         if self.state.exit_is_set():
-            self.logger.info(
-                "Stream stop waiting, exit event is set"
-            )
+            self.logger.info("Stream stop waiting, exit event is set")
         else:
-            self.logger.info(
-                "Stream stop waiting, timeout exceeded."
-            )
+            self.logger.info("Stream stop waiting, timeout exceeded")
 
     def join(self, timeout: Optional[float] = None):
         if self._thread is not None:

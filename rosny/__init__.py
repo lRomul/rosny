@@ -1,4 +1,5 @@
-from rosny.basestate import BaseState
+from rosny.state import BaseState
 from rosny.thread import BaseThreadStream
+from rosny.compose import BaseComposeStream
 
 __version__ = '0.0.1'
