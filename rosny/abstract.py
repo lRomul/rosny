@@ -4,6 +4,7 @@ import logging
 from typing import Optional
 
 from rosny.basestate import BaseState
+from rosny.timing import LoopRateManager
 from rosny.utils import setup_logger, default_object_name
 
 
@@ -14,10 +15,14 @@ class AbstractStream(abc.ABC):
 
     def __init__(self,
                  state: Optional[BaseState] = None,
-                 name: Optional[str] = None):
+                 name: Optional[str] = None,
+                 loop_rate: Optional[float] = None,
+                 min_sleep: float = 1e-9):
         self._name: str = ""
         self.name = name
         self.state = state
+        self._rate_manager = LoopRateManager(loop_rate=loop_rate,
+                                             min_sleep=min_sleep)
         self._init_signals()
         self.logger.info("Creating stream")
 

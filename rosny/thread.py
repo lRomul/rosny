@@ -8,8 +8,15 @@ from rosny.abstract import AbstractStream
 class BaseThreadStream(AbstractStream):
     def __init__(self,
                  state: Optional[BaseState] = None,
-                 name: Optional[str] = None):
-        super().__init__(state=state, name=name)
+                 name: Optional[str] = None,
+                 loop_rate: Optional[float] = None,
+                 min_sleep: float = 1e-9):
+        super().__init__(
+            state=state,
+            name=name,
+            loop_rate=loop_rate,
+            min_sleep=min_sleep
+        )
 
         self._thread = None
         self._stopped = True
@@ -21,6 +28,7 @@ class BaseThreadStream(AbstractStream):
         try:
             while not self._stopped:
                 self.work()
+                self._rate_manager.timing()
         except BaseException as exception:
             self.on_catch_exception(exception)
 
