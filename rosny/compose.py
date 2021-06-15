@@ -35,16 +35,6 @@ class BaseComposeStream(BaseStream):
         self.on_start_end()
         self.logger.info(f"Compose stream '{self.name}' started")
 
-    def wait(self, timeout: Optional[float] = None):
-        self.logger.info(f"Stream start waiting with timeout {timeout}")
-        self.on_wait_begin()
-        self._internal_state.wait_exit(timeout=timeout)
-        self.on_wait_end()
-        if self._internal_state.exit_is_set():
-            self.logger.info("Stream stop waiting, exit event is set")
-        else:
-            self.logger.info("Stream stop waiting, timeout exceeded")
-
     def stop(self):
         self.on_stop_begin()
         for stream in self._streams.values():

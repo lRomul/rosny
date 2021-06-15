@@ -40,9 +40,7 @@ class BaseThreadStream(BaseStream):
     def _join_thread(self, timeout):
         self._thread.join(timeout)
         if self._thread.is_alive():
-            self.logger.error(
-                f"Thread '{self._thread}' join timeout {timeout}"
-            )
+            self.logger.error(f"Thread '{self._thread}' join timeout {timeout}")
         else:
             self._thread = None
             self._internal_state.clear_exit()
@@ -69,16 +67,6 @@ class BaseThreadStream(BaseStream):
             self._stopped = True
             self.on_stop_end()
             self.logger.info("Stop stream")
-
-    def wait(self, timeout: Optional[float] = None):
-        self.logger.info(f"Stream start waiting with timeout {timeout}")
-        self.on_wait_begin()
-        self._internal_state.wait_exit(timeout=timeout)
-        self.on_wait_end()
-        if self._internal_state.exit_is_set():
-            self.logger.info("Stream stop waiting, exit event is set")
-        else:
-            self.logger.info("Stream stop waiting, timeout exceeded")
 
     def join(self, timeout: Optional[float] = None):
         if self._thread is not None:
