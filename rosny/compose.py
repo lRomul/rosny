@@ -1,11 +1,10 @@
 from typing import Optional, Dict
 
+from rosny.abstract import BaseStream, AbstractStream
 from rosny.state import InternalState
-from rosny.abstract import AbstractStream
-from rosny.utils import setup_logger
 
 
-class BaseComposeStream(AbstractStream):
+class BaseComposeStream(BaseStream):
     def __init__(self):
         super().__init__()
         self._streams: Dict[str, AbstractStream] = dict()

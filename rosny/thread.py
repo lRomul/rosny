@@ -1,13 +1,11 @@
 from threading import Thread
 from typing import Optional
 
-from rosny.state import InternalState
+from rosny.abstract import BaseStream
 from rosny.timing import LoopRateManager
-from rosny.abstract import AbstractStream
-from rosny.utils import setup_logger
 
 
-class BaseThreadStream(AbstractStream):
+class BaseThreadStream(BaseStream):
     def __init__(self,
                  loop_rate: Optional[float] = None,
                  min_sleep: float = 1e-9):
