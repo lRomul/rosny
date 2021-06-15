@@ -49,25 +49,6 @@ class BaseThreadStream(AbstractStream):
             self._thread = None
             self._internal_state.clear_exit()
 
-    def compile(self,
-                internal_state: Optional[InternalState] = None,
-                name: Optional[str] = None):
-        if not self._compiled:
-            if name is None:
-                self.name = self.__class__.__name__
-            else:
-                self.name = name
-            self.logger = setup_logger(self.name)
-
-            if internal_state is None:
-                self._internal_state = InternalState()
-            else:
-                self._internal_state = internal_state
-
-            self._init_signals()
-
-            self._compiled = True
-
     def start(self):
         self.logger.info("Starting stream")
         if self._stopped:

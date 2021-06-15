@@ -13,11 +13,22 @@ class AbstractStream(abc.ABC):
         self._internal_state = InternalState()
         self._compiled = False
 
-    @abc.abstractmethod
     def compile(self,
                 internal_state: Optional[InternalState] = None,
                 name: Optional[str] = None):
-        pass
+        if name is None:
+            self.name = self.__class__.__name__
+        else:
+            self.name = name
+        self.logger = setup_logger(self.name)
+
+        if internal_state is None:
+            self._internal_state = InternalState()
+        else:
+            self._internal_state = internal_state
+
+        self._init_signals()
+        self._compiled = True
 
     def on_start_begin(self):
         pass

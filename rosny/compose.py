@@ -18,27 +18,13 @@ class BaseComposeStream(AbstractStream):
     def compile(self,
                 internal_state: Optional[InternalState] = None,
                 name: Optional[str] = None):
-        if not self._compiled:
-            if name is None:
-                self.name = self.__class__.__name__
-            else:
-                self.name = name
-            self.logger = setup_logger(self.name)
+        super().compile(internal_state=internal_state, name=name)
 
-            if internal_state is None:
-                self._internal_state = InternalState()
-            else:
-                self._internal_state = internal_state
-
-            self._init_signals()
-
-            for stream_name, stream in self._streams.items():
-                stream.compile(
-                    internal_state=self._internal_state,
-                    name=f"{self.name}/{stream_name}"
-                )
-
-            self._compiled = True
+        for stream_name, stream in self._streams.items():
+            stream.compile(
+                internal_state=self._internal_state,
+                name=f"{self.name}/{stream_name}"
+            )
 
     def start(self):
         if not self._compiled:
