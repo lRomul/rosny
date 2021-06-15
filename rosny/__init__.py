@@ -1,4 +1,3 @@
-from rosny.state import BaseState
 from rosny.thread import BaseThreadStream
 from rosny.compose import BaseComposeStream
 

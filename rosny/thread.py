@@ -1,22 +1,19 @@
 from threading import Thread
 from typing import Optional
 
-from rosny.state import BaseState
+from rosny.state import InternalState
 from rosny.timing import LoopRateManager
 from rosny.abstract import AbstractStream
+from rosny.utils import setup_logger
 
 
 class BaseThreadStream(AbstractStream):
     def __init__(self,
-                 state: Optional[BaseState] = None,
-                 name: Optional[str] = None,
                  loop_rate: Optional[float] = None,
                  min_sleep: float = 1e-9):
-        super().__init__(state=state, name=name)
-
+        super().__init__()
         self._thread = None
         self._stopped = True
-
         self._rate_manager = LoopRateManager(loop_rate=loop_rate,
                                              min_sleep=min_sleep)
 
@@ -33,7 +30,7 @@ class BaseThreadStream(AbstractStream):
 
     def on_catch_exception(self, exception: BaseException):
         self.logger.exception(exception)
-        self.state.set_exit()
+        self._internal_state.set_exit()
 
     def _start_thread(self):
         self._thread = Thread(target=self.work_loop,
@@ -50,12 +47,34 @@ class BaseThreadStream(AbstractStream):
             )
         else:
             self._thread = None
-            self.state.clear_exit()
+            self._internal_state.clear_exit()
+
+    def compile(self,
+                internal_state: Optional[InternalState] = None,
+                name: Optional[str] = None):
+        if not self._compiled:
+            if name is None:
+                self.name = self.__class__.__name__
+            else:
+                self.name = name
+            self.logger = setup_logger(self.name)
+
+            if internal_state is None:
+                self._internal_state = InternalState()
+            else:
+                self._internal_state = internal_state
+
+            self._init_signals()
+
+            self._compiled = True
 
     def start(self):
         self.logger.info("Starting stream")
         if self._stopped:
             if self._thread is None:
+                if not self._compiled:
+                    self.compile()
+
                 self.on_start_begin()
                 self._start_thread()
                 self.on_start_end()
@@ -75,9 +94,9 @@ class BaseThreadStream(AbstractStream):
     def wait(self, timeout: Optional[float] = None):
         self.logger.info(f"Stream start waiting with timeout {timeout}")
         self.on_wait_begin()
-        self.state.wait_exit(timeout=timeout)
+        self._internal_state.wait_exit(timeout=timeout)
         self.on_wait_end()
-        if self.state.exit_is_set():
+        if self._internal_state.exit_is_set():
             self.logger.info("Stream stop waiting, exit event is set")
         else:
             self.logger.info("Stream stop waiting, timeout exceeded")

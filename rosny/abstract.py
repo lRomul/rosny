@@ -1,37 +1,23 @@
 import abc
 import signal
-import logging
 from typing import Optional
 
-from rosny.state import BaseState
+from rosny.state import InternalState
 from rosny.utils import setup_logger, default_object_name
 
 
 class AbstractStream(abc.ABC):
-    name: str
-    state: BaseState
-    logger: logging.Logger
+    def __init__(self):
+        self.name = default_object_name(self)
+        self.logger = setup_logger(self.name)
+        self._internal_state = InternalState()
+        self._compiled = False
 
-    def __init__(self,
-                 state: Optional[BaseState] = None,
-                 name: Optional[str] = None):
-        self._name: str = ""
-        self.name = name
-        self.state = state
-
-        self._init_signals()
-        self.logger.info("Creating stream")
-
-    @property
-    def name(self) -> str:
-        return self._name
-
-    @name.setter
-    def name(self, name: Optional[str]):
-        if name is None:
-            name = default_object_name(self)
-        self.logger = setup_logger(name)
-        self._name: str = name
+    @abc.abstractmethod
+    def compile(self,
+                internal_state: Optional[InternalState] = None,
+                name: Optional[str] = None):
+        pass
 
     def on_start_begin(self):
         pass
@@ -79,7 +65,7 @@ class AbstractStream(abc.ABC):
 
     def _handle_signal(self, signum, frame):
         self.logger.info(f"Handle signal: {signal.Signals(signum).name}")
-        self.state.set_exit()
+        self._internal_state.set_exit()
         self.stop()
 
     def __del__(self):
