@@ -48,7 +48,8 @@ class BaseComposeStream(BaseStream):
         for stream in self._streams.values():
             start = time.perf_counter()
             stream.join(timeout=timeout)
-            timeout -= time.perf_counter() - start
-            timeout = max(timeout, 0)
+            if timeout is not None:
+                timeout -= time.perf_counter() - start
+                timeout = max(timeout, 0)
         self.on_join_end()
         self.logger.info(f"Compose stream '{self.name}' joined")
