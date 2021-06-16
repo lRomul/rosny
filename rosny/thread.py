@@ -1,5 +1,5 @@
 from threading import Thread
-from typing import Optional
+from typing import Optional, Union
 
 from rosny.abstract import BaseStream
 from rosny.timing import LoopRateManager
@@ -23,10 +23,10 @@ class BaseThreadStream(BaseStream):
             while not self._stopped:
                 self.work()
                 self._rate_manager.timing()
-        except BaseException as exception:
+        except (Exception, KeyboardInterrupt) as exception:
             self.on_catch_exception(exception)
 
-    def on_catch_exception(self, exception: BaseException):
+    def on_catch_exception(self, exception: Union[Exception, KeyboardInterrupt]):
         self.logger.exception(exception)
         self._internal_state.set_exit()
 
