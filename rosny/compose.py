@@ -1,3 +1,4 @@
+import time
 from typing import Optional, Dict
 
 from rosny.abstract import BaseStream, AbstractStream
@@ -45,6 +46,9 @@ class BaseComposeStream(BaseStream):
     def join(self, timeout: Optional[float] = None):
         self.on_join_begin()
         for stream in self._streams.values():
+            start = time.perf_counter()
             stream.join(timeout=timeout)
+            timeout -= time.perf_counter() - start
+            timeout = max(timeout, 0)
         self.on_join_end()
         self.logger.info(f"Compose stream '{self.name}' joined")
