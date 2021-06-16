@@ -1,7 +1,7 @@
 import time
 from typing import Optional
 
-from rosny.utils import EMAMeter
+from rosny.utils import MeanMeter
 
 
 class LoopRateManager:
@@ -10,7 +10,7 @@ class LoopRateManager:
                  min_sleep: float = 1e-9):
         self._loop_rate = None
         self._loop_time = None
-        self._sleep_delay_meter = None
+        self._sleep_delay_meter = MeanMeter()
         self._prev_time = time.perf_counter()
         self._prev_loop_time = self._loop_time
 
@@ -21,13 +21,10 @@ class LoopRateManager:
         self._loop_rate = loop_rate
         if loop_rate is None:
             self._loop_time = None
-            self._sleep_delay_meter = None
         else:
             self._loop_time = 1.0 / self.loop_rate
-            self._sleep_delay_meter = EMAMeter(
-                alpha=2 / (self.loop_rate + 1)
-            )
         self._prev_loop_time = self._loop_time
+        self._sleep_delay_meter.reset()
         self._prev_time = time.perf_counter()
 
     def reset(self):

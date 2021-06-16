@@ -5,7 +5,7 @@ from rosny.abstract import BaseStream
 from rosny.timing import LoopRateManager
 
 
-class BaseThreadStream(BaseStream):
+class ThreadStream(BaseStream):
     def __init__(self,
                  loop_rate: Optional[float] = None,
                  min_sleep: float = 1e-9):
