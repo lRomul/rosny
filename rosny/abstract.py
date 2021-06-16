@@ -67,17 +67,10 @@ class BaseStream(AbstractStream, abc.ABC):
     def compile(self,
                 internal_state: Optional[InternalState] = None,
                 name: Optional[str] = None):
-        if name is None:
-            self.name = self.__class__.__name__
-        else:
-            self.name = name
+        self.name = self.__class__.__name__ if name is None else name
         self.logger = setup_logger(self.name)
-
-        if internal_state is None:
-            self._internal_state = InternalState()
-        else:
-            self._internal_state = internal_state
-
+        self._internal_state = (InternalState() if internal_state is None
+                                else internal_state)
         self._init_signals()
         self._compiled = True
 

@@ -5,7 +5,7 @@ from rosny.abstract import BaseStream, AbstractStream
 from rosny.state import InternalState
 
 
-class BaseComposeStream(BaseStream):
+class ComposeStream(BaseStream):
     def __init__(self):
         super().__init__()
         self._streams: Dict[str, AbstractStream] = dict()
