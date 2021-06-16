@@ -6,8 +6,12 @@ class LoopTimeMeter:
     def __init__(self):
         self.mean = 0.0
         self.count = 0
-        self.restart_time = time.perf_counter()
-        self.prev_time = self.restart_time
+        self.prev_time = time.perf_counter()
+
+    def reset(self):
+        self.mean = 0.0
+        self.count = 0
+        self.prev_time = time.perf_counter()
 
     def start(self):
         self.prev_time = time.perf_counter()
@@ -19,24 +23,33 @@ class LoopTimeMeter:
         self.mean += (delta - self.mean) / self.count
         self.prev_time = now_time
 
-    def reset(self):
-        self.mean = 0.0
-        self.count = 0
-        self.restart_time = time.perf_counter()
-
 
 class LoopRateManager:
     def __init__(self,
                  loop_rate: Optional[float] = None,
                  min_sleep: float = 1e-9):
         self._time_meter = LoopTimeMeter()
+        self._loop_rate = None
         self._loop_time = None
         self._sleep_delay = None
-        self._loop_rate = None
         self._prev_time = time.perf_counter()
 
         self.loop_rate = loop_rate
         self.min_sleep = min_sleep
+
+    def _build(self, loop_rate):
+        self._loop_rate = loop_rate
+        if loop_rate is None:
+            self._loop_time = None
+            self._sleep_delay = None
+        else:
+            self._loop_time = 1.0 / self.loop_rate
+            self._sleep_delay = 0.
+        self._prev_time = time.perf_counter()
+        self._time_meter.reset()
+
+    def reset(self):
+        self._build(self._loop_rate)
 
     @property
     def loop_rate(self):
@@ -44,13 +57,7 @@ class LoopRateManager:
 
     @loop_rate.setter
     def loop_rate(self, value):
-        self._loop_rate = value
-        if value is None:
-            self._loop_time = None
-            self._sleep_delay = None
-        else:
-            self._loop_time = 1.0 / self.loop_rate
-            self._sleep_delay = 0.
+        self._build(value)
 
     def timing(self):
         self._time_meter.end()
@@ -63,8 +70,8 @@ class LoopRateManager:
 
             sleep_time = (self._loop_time
                           + self._prev_time
-                          - time.perf_counter())
-            sleep_time -= self._sleep_delay
+                          - time.perf_counter()
+                          - self._sleep_delay)
             sleep_time = max(self.min_sleep, sleep_time)
 
         time.sleep(sleep_time)
