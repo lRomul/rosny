@@ -20,6 +20,7 @@ class BaseThreadStream(BaseStream):
 
     def work_loop(self):
         try:
+            self._rate_manager.reset()
             while not self._stopped:
                 self.work()
                 self._rate_manager.timing()
