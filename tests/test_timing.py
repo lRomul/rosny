@@ -6,15 +6,15 @@ from rosny.timing import LoopTimeMeter
 
 @pytest.mark.parametrize("start", [True, False])
 def test_loop_time_meter(start):
-    profiler = LoopTimeMeter()
+    meter = LoopTimeMeter()
 
     if start:
         time.sleep(0.1)
     for _ in range(100):
         if start:
-            profiler.start()
+            meter.start()
         time.sleep(0.01)
-        profiler.end()
-    assert pytest.approx(profiler.mean, rel=6e-2) == 0.01
-    profiler.reset()
-    assert profiler.count == 0
+        meter.end()
+    assert pytest.approx(meter.mean, rel=6e-2) == 0.01
+    meter.reset()
+    assert meter.count == 0
