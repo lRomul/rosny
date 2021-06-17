@@ -29,12 +29,12 @@ class ComposeStream(BaseStream):
     def start(self):
         if not self._compiled:
             self.compile()
-        self.logger.info(f"Starting stream")
+        self.logger.info("Starting stream")
         self.on_start_begin()
         for stream in self._streams.values():
             stream.start()
         self.on_start_end()
-        self.logger.info(f"Stream started")
+        self.logger.info("Stream started")
 
     def stop(self):
         self.logger.info("Stopping stream")
@@ -42,10 +42,10 @@ class ComposeStream(BaseStream):
         for stream in self._streams.values():
             stream.stop()
         self.on_stop_end()
-        self.logger.info(f"Stream stopped")
+        self.logger.info("Stream stopped")
 
     def join(self, timeout: Optional[float] = None):
-        self.logger.info(f"Join stream")
+        self.logger.info("Joining stream")
         self.on_join_begin()
         for stream in self._streams.values():
             start = time.perf_counter()
@@ -54,4 +54,4 @@ class ComposeStream(BaseStream):
                 timeout -= time.perf_counter() - start
                 timeout = max(timeout, 0)
         self.on_join_end()
-        self.logger.info(f"Stream joined")
+        self.logger.info("Stream joined")

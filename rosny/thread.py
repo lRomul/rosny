@@ -67,7 +67,7 @@ class ThreadStream(BaseStream):
             self.on_stop_begin()
             self._stopped = True
             self.on_stop_end()
-            self.logger.info(f"Stream stopped")
+            self.logger.info("Stream stopped")
         else:
             self.logger.error("Stream is already stopped")
 
