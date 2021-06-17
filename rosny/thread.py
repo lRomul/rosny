@@ -12,18 +12,18 @@ class ThreadStream(BaseStream):
         super().__init__()
         self._thread = None
         self._stopped = True
-        self._rate_manager = LoopRateManager(loop_rate=loop_rate,
-                                             min_sleep=min_sleep)
+        self.rate_manager = LoopRateManager(loop_rate=loop_rate,
+                                            min_sleep=min_sleep)
 
     def work(self):
         raise NotImplementedError
 
     def work_loop(self):
         try:
-            self._rate_manager.reset()
+            self.rate_manager.reset()
             while not self.stopped():
                 self.work()
-                self._rate_manager.timing()
+                self.rate_manager.timing()
         except (Exception, KeyboardInterrupt) as exception:
             self.on_catch_exception(exception)
 
