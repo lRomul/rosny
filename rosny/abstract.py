@@ -57,6 +57,14 @@ class AbstractStream(abc.ABC):
     def stopped(self) -> bool:
         pass
 
+    @abc.abstractmethod
+    def compiled(self) -> bool:
+        pass
+
+    @abc.abstractmethod
+    def joined(self) -> bool:
+        pass
+
     def __del__(self):
         if not self.stopped():
             self.stop()
@@ -97,3 +105,6 @@ class BaseStream(AbstractStream, abc.ABC):
         self.logger.info(f"Handle signal: {signal.Signals(signum).name}")
         self._internal_state.set_exit()
         self.stop()
+
+    def compiled(self) -> bool:
+        return self._compiled

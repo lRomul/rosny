@@ -19,7 +19,6 @@ class ComposeStream(BaseStream):
                 internal_state: Optional[InternalState] = None,
                 name: Optional[str] = None):
         super().compile(internal_state=internal_state, name=name)
-
         for stream_name, stream in self._streams.items():
             stream.compile(
                 internal_state=self._internal_state,
@@ -59,5 +58,11 @@ class ComposeStream(BaseStream):
     def stopped(self) -> bool:
         for stream in self._streams.values():
             if not stream.stopped():
+                return False
+        return True
+
+    def joined(self) -> bool:
+        for stream in self._streams.values():
+            if not stream.joined():
                 return False
         return True

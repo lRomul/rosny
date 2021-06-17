@@ -21,7 +21,7 @@ class ThreadStream(BaseStream):
     def work_loop(self):
         try:
             self._rate_manager.reset()
-            while not self._stopped:
+            while not self.stopped():
                 self.work()
                 self._rate_manager.timing()
         except (Exception, KeyboardInterrupt) as exception:
@@ -48,8 +48,8 @@ class ThreadStream(BaseStream):
 
     def start(self):
         self.logger.info("Starting stream")
-        if self._stopped:
-            if self._thread is None:
+        if self.stopped():
+            if self.joined():
                 if not self._compiled:
                     self.compile()
                 self.on_start_begin()
@@ -73,7 +73,7 @@ class ThreadStream(BaseStream):
 
     def join(self, timeout: Optional[float] = None):
         self.logger.info("Joining stream")
-        if self._thread is not None:
+        if not self.joined():
             self.on_join_begin()
             self._join_thread(timeout=timeout)
             self.on_join_end()
@@ -83,3 +83,6 @@ class ThreadStream(BaseStream):
 
     def stopped(self) -> bool:
         return self._stopped
+
+    def joined(self) -> bool:
+        return self._thread is None
