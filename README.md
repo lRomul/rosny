@@ -33,6 +33,7 @@ class SenderStream(ThreadStream):
         self.queue.put(self.count)
         self.count += 1
 
+
 class ReceiverStream(ThreadStream):
     def __init__(self, queue: Queue):
         super().__init__()
