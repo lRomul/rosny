@@ -75,14 +75,14 @@ class BaseStream(AbstractStream, abc.ABC):
         self._compiled = True
 
     def wait(self, timeout: Optional[float] = None):
-        self.logger.info(f"Stream start waiting with timeout {timeout}")
+        self.logger.info(f"Waiting stream with timeout {timeout}")
         self.on_wait_begin()
         self._internal_state.wait_exit(timeout=timeout)
         self.on_wait_end()
         if self._internal_state.exit_is_set():
-            self.logger.info("Stream stop waiting, exit event is set")
+            self.logger.info("Waiting ended, exit event is set")
         else:
-            self.logger.info("Stream stop waiting, timeout exceeded")
+            self.logger.info("Waiting ended, timeout exceeded")
 
     def _init_signals(self):
         signal.signal(signal.SIGINT, self._handle_signal)

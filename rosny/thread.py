@@ -52,7 +52,6 @@ class ThreadStream(BaseStream):
             if self._thread is None:
                 if not self._compiled:
                     self.compile()
-
                 self.on_start_begin()
                 self._start_thread()
                 self.on_start_end()
@@ -63,13 +62,17 @@ class ThreadStream(BaseStream):
             self.logger.error("Stream is already started")
 
     def stop(self):
+        self.logger.info("Stopping stream")
         if not self._stopped:
             self.on_stop_begin()
             self._stopped = True
             self.on_stop_end()
-            self.logger.info("Stop stream")
+            self.logger.info(f"Stream stopped")
+        else:
+            self.logger.error("Stream is already stopped")
 
     def join(self, timeout: Optional[float] = None):
+        self.logger.info("Joining stream")
         if self._thread is not None:
             self.on_join_begin()
             self._join_thread(timeout=timeout)

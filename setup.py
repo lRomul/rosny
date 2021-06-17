@@ -33,7 +33,7 @@ setup(
     zip_safe=True,
     python_requires='>=3.6',
     classifiers=[
-        'Development Status :: 1 - Planning',
+        'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: MIT License',
         'Intended Audience :: Developers',
         'Operating System :: OS Independent',
