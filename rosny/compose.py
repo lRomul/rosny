@@ -55,3 +55,9 @@ class ComposeStream(BaseStream):
                 timeout = max(timeout, 0)
         self.on_join_end()
         self.logger.info("Stream joined")
+
+    def stopped(self) -> bool:
+        for stream in self._streams.values():
+            if not stream.stopped():
+                return False
+        return True

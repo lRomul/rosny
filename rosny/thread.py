@@ -80,3 +80,6 @@ class ThreadStream(BaseStream):
             self.logger.info("Stream joined")
         else:
             self.logger.error("Stream is already joined")
+
+    def stopped(self) -> bool:
+        return self._stopped

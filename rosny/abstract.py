@@ -53,8 +53,13 @@ class AbstractStream(abc.ABC):
     def join(self, timeout: Optional[float] = None):
         pass
 
+    @abc.abstractmethod
+    def stopped(self) -> bool:
+        pass
+
     def __del__(self):
-        self.stop()
+        if not self.stopped():
+            self.stop()
 
 
 class BaseStream(AbstractStream, abc.ABC):
