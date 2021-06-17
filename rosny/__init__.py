@@ -1,4 +1,4 @@
 from rosny.thread import ThreadStream
 from rosny.compose import ComposeStream
 
-__version__ = '0.0.1'
+__version__ = '0.0.2'
