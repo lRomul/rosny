@@ -162,3 +162,32 @@ class TestThreadStream:
         stream.join()
         assert stream._thread is None
         assert stream.joined()
+
+    def test_exception_catching(self):
+        class ExceptionStream(ThreadStream):
+            def __init__(self):
+                super().__init__()
+                self.exception = None
+
+            def work(self):
+                time.sleep(0.1)
+                raise Exception("test")
+
+            def on_catch_exception(self, exception):
+                self.exception = exception
+                self._internal_state.set_exit()
+
+        stream = ExceptionStream()
+        assert stream.exception is None
+        stream.start()
+        stream.wait()
+        assert isinstance(stream.exception, Exception)
+        stream.stop()
+        stream.join()
+
+        stream = ThreadStream()
+        stream.start()
+        stream.wait()
+        assert stream._internal_state.exit_is_set()
+        stream.stop()
+        stream.join()
