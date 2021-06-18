@@ -30,5 +30,7 @@ jobs:
         run: flake8
       - name: Test
         run: pytest
+      - name: Upload coverage
+        uses: codecov/codecov-action@v1
       - name: Check types
         run: mypy
