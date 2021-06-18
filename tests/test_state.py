@@ -21,13 +21,13 @@ class TestInternalState:
         assert not internal_state._exit_event.is_set()
         assert not internal_state.exit_is_set()
 
-    def test_state_wait_exit(self, internal_state, loop_time_meter):
+    def test_state_wait_exit(self, internal_state, time_meter):
         assert not internal_state.exit_is_set()
 
-        loop_time_meter.start()
+        time_meter.start()
         internal_state.wait_exit(timeout=0.1)
-        loop_time_meter.end()
-        assert pytest.approx(loop_time_meter.mean, rel=0.03) == 0.1
+        time_meter.end()
+        assert pytest.approx(time_meter.mean, rel=0.05) == 0.1
 
         internal_state.set_exit()
         internal_state.wait_exit()
