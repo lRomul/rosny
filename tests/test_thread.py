@@ -1,3 +1,4 @@
+import time
 import pytest
 import threading
 from typing import Optional
@@ -41,7 +42,7 @@ class TestThreadStream:
         assert stream.init_param == 42
         assert stream.another_param == 43
         assert stream.rate_manager.loop_rate is None
-        assert stream.rate_manager.min_sleep is 1e-9
+        assert stream.rate_manager.min_sleep == 1e-9
 
     def test_compile(self, stream: CustomStream):
         assert not stream.compiled()
@@ -88,3 +89,76 @@ class TestThreadStream:
         assert stream.stopped()
         assert stream.joined()
         assert stream._thread is None
+
+    def test_loop_rate_work(self, stream: CustomStream):
+        stream.rate_manager.loop_rate = 120
+        stream.start()
+        stream.wait(timeout=3.0)
+        assert pytest.approx(stream.count, rel=0.1) == 360
+
+    def test_join_timeout(self, time_meter):
+        class SleepStream(ThreadStream):
+            def work(self):
+                time.sleep(42)
+
+        stream = SleepStream()
+        stream.start()
+        stream.stop()
+        assert not stream.joined()
+        time_meter.start()
+        stream.join(timeout=1)
+        time_meter.end()
+        assert not stream.joined()
+        assert pytest.approx(time_meter.mean, rel=0.05) == 1
+
+    def test_min_sleep(self, stream: CustomStream):
+        stream.rate_manager.min_sleep = 0.01
+        stream.start()
+        stream.wait(timeout=0.1)
+        assert stream.count <= 11
+
+    def test_double_start(self, stream: CustomStream):
+        assert stream._thread is None
+        stream.start()
+        assert isinstance(stream._thread, threading.Thread)
+        thread = stream._thread
+        stream.start()
+        assert stream._thread is thread
+        stream.stop()
+        stream.join()
+        assert stream._thread is None
+
+    def test_restart(self, stream: CustomStream):
+        stream.start()
+        stream.wait(timeout=0.1)
+        assert not stream.stopped()
+        stream.stop()
+        stream.join()
+        assert stream.joined()
+        assert stream.stopped()
+
+        stream.start()
+        stream.wait(timeout=0.1)
+        assert not stream.stopped()
+        stream.stop()
+        stream.join()
+        assert stream.joined()
+        assert stream.stopped()
+        assert stream.count > 30
+
+    def test_wrong_restart(self, stream: CustomStream):
+        stream.start()
+        thread = stream._thread
+        stream.wait(timeout=0.1)
+        assert not stream.stopped()
+        stream.stop()
+        assert stream._thread is thread
+        assert stream.stopped()
+
+        stream.start()
+        assert stream._thread is thread
+        assert stream.stopped()
+
+        stream.join()
+        assert stream._thread is None
+        assert stream.joined()
