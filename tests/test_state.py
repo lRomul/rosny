@@ -1,6 +1,4 @@
 import pytest
-from threading import Event
-
 from rosny.state import InternalState
 
 
@@ -11,7 +9,6 @@ def internal_state() -> InternalState:
 
 class TestInternalState:
     def test_set_clear_exit_event(self, internal_state):
-        assert isinstance(internal_state._exit_event, Event)
         assert not internal_state._exit_event.is_set()
         assert not internal_state.exit_is_set()
         internal_state.set_exit()

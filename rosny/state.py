@@ -1,10 +1,10 @@
-import threading
+import multiprocessing
 from typing import Optional
 
 
 class InternalState:
     def __init__(self):
-        self._exit_event = threading.Event()
+        self._exit_event = multiprocessing.Event()
 
     def set_exit(self):
         self._exit_event.set()
