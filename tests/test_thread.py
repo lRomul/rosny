@@ -1,4 +1,6 @@
+import os
 import time
+import signal
 import pytest
 import threading
 from typing import Optional
@@ -48,10 +50,12 @@ class TestThreadStream:
         assert not stream.compiled()
         assert not stream._compiled
         assert stream.name.startswith('CustomStream-')
+        assert stream.name == stream.logger.name
         stream.compile()
         assert stream.compiled()
         assert stream._compiled
         assert stream.name == 'CustomStream'
+        assert stream.logger.name == 'CustomStream'
 
     def test_start(self, stream: CustomStream):
         assert not stream.compiled()
@@ -191,3 +195,13 @@ class TestThreadStream:
         assert stream._internal_state.exit_is_set()
         stream.stop()
         stream.join()
+
+    def test_handle_signal(self, stream: CustomStream):
+        stream.start()
+        time.sleep(0.1)
+        os.kill(os.getpid(), signal.SIGINT)
+        stream.wait()
+        time.sleep(0.1)
+        assert stream.stopped()
+        stream.join()
+        assert stream.joined()
