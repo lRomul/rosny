@@ -1,7 +1,7 @@
-from rosny.abstract import AbstractStream
+from rosny.abstract import AbstractStream, LoopStream
 
 
-def test_abstract(monkeypatch):
+def test_abstract_stream(monkeypatch):
     monkeypatch.setattr(AbstractStream, '__abstractmethods__', set())
 
     class MockAbstractStream(AbstractStream):
@@ -16,3 +16,16 @@ def test_abstract(monkeypatch):
     assert stream.compiled() is None
     assert stream.stopped() is None
     assert stream.joined() is None
+
+
+def test_loop_stream(monkeypatch):
+    monkeypatch.setattr(LoopStream, '__abstractmethods__', set())
+
+    class MockLoopStream(LoopStream):
+        pass
+
+    stream = MockLoopStream()
+    assert stream.work() is None
+    assert stream._start_driver() is None
+    assert stream._stop_driver() is None
+    assert stream._join_driver(None) is None
