@@ -31,7 +31,7 @@ def stream():
     stream.join()
 
 
-class TestThreadStream:
+class TestProcessStream:
     def test_init(self):
         stream = CustomStream(loop_rate=30.0, min_sleep=0.001)
         assert stream.init_param is None
@@ -115,5 +115,84 @@ class TestThreadStream:
         time_meter.end()
         assert not stream.joined()
         assert pytest.approx(time_meter.mean, rel=0.05) == 1
+        stream.join()
+        assert stream.joined()
+
+    def test_min_sleep(self, stream: CustomStream):
+        stream.rate_manager.min_sleep = 0.01
+        stream.start()
+        stream.wait(timeout=0.1)
+        assert stream.count.value <= 11
+
+    def test_double_start(self, stream: CustomStream):
+        assert stream._driver is None
+        stream.start()
+        assert isinstance(stream._driver, Process)
+        process = stream._driver
+        stream.start()
+        assert stream._driver is process
+        stream.stop()
+        stream.join()
+        assert stream._driver is None
+
+    def test_restart(self, stream: CustomStream):
+        stream.start()
+        stream.wait(timeout=3)
+        assert not stream.stopped()
+        stream.stop()
+        stream.join()
+        assert stream.joined()
+        assert stream.stopped()
+
+        stream.start()
+        stream.wait(timeout=3)
+        assert not stream.stopped()
+        stream.stop()
+        stream.join()
+        assert stream.joined()
+        assert stream.stopped()
+        assert stream.count.value > 30
+
+    def test_wrong_restart(self, stream: CustomStream):
+        stream.start()
+        process = stream._driver
+        stream.wait(timeout=3)
+        assert not stream.stopped()
+        stream.stop()
+        assert stream._driver is process
+        assert stream.stopped()
+
+        stream.start()
+        assert stream._driver is process
+        assert stream.stopped()
+
+        stream.join()
+        assert stream._driver is None
+        assert stream.joined()
+
+    def test_exception_catching(self):
+        class ExceptionStream(ProcessStream):
+            def __init__(self):
+                super().__init__()
+                self.exception = None
+
+            def work(self):
+                time.sleep(0.1)
+                raise Exception("test")
+
+        stream = ExceptionStream()
+        assert stream.exception is None
+        stream.start()
+        stream.wait()
+        stream.stop()
+        stream.join()
+
+    def test_handle_signal(self, stream: CustomStream):
+        stream.start()
+        time.sleep(0.1)
+        os.kill(os.getpid(), signal.SIGINT)
+        stream.wait()
+        time.sleep(0.1)
+        assert stream.stopped()
         stream.join()
         assert stream.joined()

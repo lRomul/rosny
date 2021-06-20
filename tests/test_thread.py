@@ -2,8 +2,8 @@ import os
 import time
 import signal
 import pytest
-import threading
 from typing import Optional
+from threading import Thread
 
 from rosny.thread import ThreadStream
 
@@ -65,7 +65,7 @@ class TestThreadStream:
         assert stream.compiled()
         assert not stream.stopped()
         assert not stream.joined()
-        assert isinstance(stream._driver, threading.Thread)
+        assert isinstance(stream._driver, Thread)
         assert stream._driver.is_alive()
 
     def test_wait(self, stream: CustomStream, time_meter):
@@ -88,7 +88,7 @@ class TestThreadStream:
         stream.stop()
         assert stream.stopped()
         assert not stream.joined()
-        assert isinstance(stream._driver, threading.Thread)
+        assert isinstance(stream._driver, Thread)
         stream.join()
         assert stream.stopped()
         assert stream.joined()
@@ -127,7 +127,7 @@ class TestThreadStream:
     def test_double_start(self, stream: CustomStream):
         assert stream._driver is None
         stream.start()
-        assert isinstance(stream._driver, threading.Thread)
+        assert isinstance(stream._driver, Thread)
         thread = stream._driver
         stream.start()
         assert stream._driver is thread
