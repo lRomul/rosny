@@ -105,7 +105,6 @@ class BaseStream(AbstractStream, abc.ABC):
     def _handle_signal(self, signum, frame):
         self.logger.info(f"Handle signal: {signal.Signals(signum).name}")
         self._internal_state.set_exit()
-        self.stop()
 
     def compiled(self) -> bool:
         return self._compiled
