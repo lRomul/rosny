@@ -197,7 +197,7 @@ class TestThreadStream:
         time.sleep(0.1)
         os.kill(os.getpid(), signal.SIGINT)
         stream.wait()
-        time.sleep(0.1)
+        stream.stop()
         assert stream.stopped()
         stream.join()
         assert stream.joined()

@@ -103,11 +103,11 @@ class TestProcessStream:
     def test_join_timeout(self, time_meter):
         class SleepStream(ProcessStream):
             def work(self):
-                time.sleep(12)
+                time.sleep(3)
 
         stream = SleepStream()
         stream.start()
-        stream.wait(3)
+        stream.wait(1)
         stream.stop()
         assert not stream.joined()
         time_meter.start()
@@ -137,7 +137,7 @@ class TestProcessStream:
 
     def test_restart(self, stream: CustomStream):
         stream.start()
-        stream.wait(timeout=3)
+        stream.wait(timeout=1)
         assert not stream.stopped()
         stream.stop()
         stream.join()
@@ -145,7 +145,7 @@ class TestProcessStream:
         assert stream.stopped()
 
         stream.start()
-        stream.wait(timeout=3)
+        stream.wait(timeout=1)
         assert not stream.stopped()
         stream.stop()
         stream.join()
@@ -156,7 +156,7 @@ class TestProcessStream:
     def test_wrong_restart(self, stream: CustomStream):
         stream.start()
         process = stream._driver
-        stream.wait(timeout=3)
+        stream.wait(timeout=1)
         assert not stream.stopped()
         stream.stop()
         assert stream._driver is process
@@ -174,16 +174,20 @@ class TestProcessStream:
         class ExceptionStream(ProcessStream):
             def __init__(self):
                 super().__init__()
-                self.exception = None
+                self.exception = Value('i', 0)
 
             def work(self):
                 time.sleep(0.1)
                 raise Exception("test")
 
+            def on_catch_exception(self, exception):
+                self.exception.value = 1
+                super().on_catch_exception(exception)
+
         stream = ExceptionStream()
-        assert stream.exception is None
         stream.start()
         stream.wait()
+        assert stream.exception.value
         stream.stop()
         stream.join()
 
@@ -192,7 +196,30 @@ class TestProcessStream:
         time.sleep(0.1)
         os.kill(os.getpid(), signal.SIGINT)
         stream.wait()
-        time.sleep(0.1)
+        stream.stop()
+        assert stream.stopped()
+        stream.join()
+        assert stream.joined()
+
+    def test_in_process_handle_signal(self):
+        class SignalStream(ProcessStream):
+            def __init__(self):
+                super().__init__()
+                self.signal = Value('i', 0)
+
+            def work(self):
+                time.sleep(0.1)
+                os.kill(os.getpid(), signal.SIGINT)
+
+            def _handle_signal(self, signum, frame):
+                self.signal.value = 1
+                super()._handle_signal(signum, frame)
+
+        stream = SignalStream()
+        stream.start()
+        stream.wait()
+        assert stream.signal.value
+        stream.stop()
         assert stream.stopped()
         stream.join()
         assert stream.joined()
