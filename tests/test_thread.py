@@ -65,8 +65,8 @@ class TestThreadStream:
         assert stream.compiled()
         assert not stream.stopped()
         assert not stream.joined()
-        assert isinstance(stream._thread, threading.Thread)
-        assert stream._thread.is_alive()
+        assert isinstance(stream._driver, threading.Thread)
+        assert stream._driver.is_alive()
 
     def test_wait(self, stream: CustomStream, time_meter):
         time_meter.start()
@@ -88,11 +88,11 @@ class TestThreadStream:
         stream.stop()
         assert stream.stopped()
         assert not stream.joined()
-        assert isinstance(stream._thread, threading.Thread)
+        assert isinstance(stream._driver, threading.Thread)
         stream.join()
         assert stream.stopped()
         assert stream.joined()
-        assert stream._thread is None
+        assert stream._driver is None
 
     def test_loop_rate_work(self, stream: CustomStream):
         stream.rate_manager.loop_rate = 120
@@ -122,15 +122,15 @@ class TestThreadStream:
         assert stream.count <= 11
 
     def test_double_start(self, stream: CustomStream):
-        assert stream._thread is None
+        assert stream._driver is None
         stream.start()
-        assert isinstance(stream._thread, threading.Thread)
-        thread = stream._thread
+        assert isinstance(stream._driver, threading.Thread)
+        thread = stream._driver
         stream.start()
-        assert stream._thread is thread
+        assert stream._driver is thread
         stream.stop()
         stream.join()
-        assert stream._thread is None
+        assert stream._driver is None
 
     def test_restart(self, stream: CustomStream):
         stream.start()
@@ -152,19 +152,19 @@ class TestThreadStream:
 
     def test_wrong_restart(self, stream: CustomStream):
         stream.start()
-        thread = stream._thread
+        thread = stream._driver
         stream.wait(timeout=0.1)
         assert not stream.stopped()
         stream.stop()
-        assert stream._thread is thread
+        assert stream._driver is thread
         assert stream.stopped()
 
         stream.start()
-        assert stream._thread is thread
+        assert stream._driver is thread
         assert stream.stopped()
 
         stream.join()
-        assert stream._thread is None
+        assert stream._driver is None
         assert stream.joined()
 
     def test_exception_catching(self):
@@ -179,20 +179,13 @@ class TestThreadStream:
 
             def on_catch_exception(self, exception):
                 self.exception = exception
-                self._internal_state.set_exit()
+                super().on_catch_exception(exception)
 
         stream = ExceptionStream()
         assert stream.exception is None
         stream.start()
         stream.wait()
         assert isinstance(stream.exception, Exception)
-        stream.stop()
-        stream.join()
-
-        stream = ThreadStream()
-        stream.start()
-        stream.wait()
-        assert stream._internal_state.exit_is_set()
         stream.stop()
         stream.join()
 

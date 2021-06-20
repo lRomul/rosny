@@ -1,8 +1,9 @@
 import abc
 import signal
-from typing import Optional
+from typing import Optional, Union
 
 from rosny.state import InternalState
+from rosny.timing import LoopRateManager
 from rosny.utils import setup_logger, default_object_name
 
 
@@ -108,3 +109,79 @@ class BaseStream(AbstractStream, abc.ABC):
 
     def compiled(self) -> bool:
         return self._compiled
+
+
+class LoopStream(BaseStream, abc.ABC):
+    def __init__(self,
+                 loop_rate: Optional[float] = None,
+                 min_sleep: float = 1e-9):
+        super().__init__()
+        self._driver = None
+        self.rate_manager = LoopRateManager(loop_rate=loop_rate,
+                                            min_sleep=min_sleep)
+
+    def work(self):
+        pass
+
+    def work_loop(self):
+        try:
+            self.rate_manager.reset()
+            while not self.stopped():
+                self.work()
+                self.rate_manager.timing()
+        except (Exception, KeyboardInterrupt) as exception:
+            self.on_catch_exception(exception)
+
+    def on_catch_exception(self, exception: Union[Exception, KeyboardInterrupt]):
+        self.logger.exception(exception)
+        self._internal_state.set_exit()
+
+    @abc.abstractmethod
+    def _start_driver(self):
+        pass
+
+    @abc.abstractmethod
+    def _stop_driver(self):
+        pass
+
+    @abc.abstractmethod
+    def _join_driver(self, timeout):
+        pass
+
+    def start(self):
+        self.logger.info("Starting stream")
+        if self.stopped():
+            if self.joined():
+                if not self.compiled():
+                    self.compile()
+                self.on_start_begin()
+                self._start_driver()
+                self.on_start_end()
+                self.logger.info("Stream started")
+            else:
+                self.logger.error("Stream stopped but not joined")
+        else:
+            self.logger.error("Stream is already started")
+
+    def stop(self):
+        self.logger.info("Stopping stream")
+        if not self.stopped():
+            self.on_stop_begin()
+            self._stop_driver()
+            self.on_stop_end()
+            self.logger.info("Stream stopped")
+        else:
+            self.logger.error("Stream is already stopped")
+
+    def join(self, timeout: Optional[float] = None):
+        self.logger.info("Joining stream")
+        if not self.joined():
+            self.on_join_begin()
+            self._join_driver(timeout=timeout)
+            self.on_join_end()
+            self.logger.info("Stream joined")
+        else:
+            self.logger.error("Stream is already joined")
+
+    def joined(self) -> bool:
+        return self._driver is None
