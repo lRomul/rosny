@@ -150,6 +150,7 @@ class LoopStream(BaseStream, abc.ABC):
             if self.joined():
                 if not self.compiled():
                     self.compile()
+                self._internal_state.clear_exit()
                 self.on_start_begin()
                 self._start_driver()
                 if self._handle_signals:
