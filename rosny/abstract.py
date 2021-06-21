@@ -66,10 +66,6 @@ class AbstractStream(abc.ABC):
     def joined(self) -> bool:
         pass
 
-    def __del__(self):
-        if not self.stopped():
-            self.stop()
-
 
 class BaseStream(AbstractStream, abc.ABC):
     def __init__(self):
@@ -102,6 +98,10 @@ class BaseStream(AbstractStream, abc.ABC):
 
     def compiled(self) -> bool:
         return self._compiled
+
+    def __del__(self):
+        if not self.stopped():
+            self.stop()
 
 
 class LoopStream(BaseStream, abc.ABC):
