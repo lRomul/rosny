@@ -71,6 +71,14 @@ class AbstractStream(abc.ABC):
             self.stop()
 
 
+class SignalException(BaseException):
+    def __init__(self, signum, frame):
+        message = f"Handle signal: {signal.Signals(signum).name}"
+        super().__init__(message)
+        self.signum = signum
+        self.frame = frame
+
+
 class BaseStream(AbstractStream, abc.ABC):
     def __init__(self):
         self.name = default_object_name(self)
@@ -83,9 +91,11 @@ class BaseStream(AbstractStream, abc.ABC):
                 name: Optional[str] = None):
         self.name = self.__class__.__name__ if name is None else name
         self.logger = setup_logger(self.name)
-        self._internal_state = (InternalState() if internal_state is None
-                                else internal_state)
-        self._init_signals()
+        if internal_state is None:
+            self._internal_state = InternalState()
+            self._init_signals()
+        else:
+            self._internal_state = internal_state
         self._compiled = True
 
     def wait(self, timeout: Optional[float] = None):
@@ -101,10 +111,13 @@ class BaseStream(AbstractStream, abc.ABC):
     def _init_signals(self):
         signal.signal(signal.SIGINT, self._handle_signal)
         signal.signal(signal.SIGTERM, self._handle_signal)
+        signal.signal(signal.SIGQUIT, self._handle_signal)
 
     def _handle_signal(self, signum, frame):
-        self.logger.info(f"Handle signal: {signal.Signals(signum).name}")
-        self._internal_state.set_exit()
+        exception = SignalException(signum, frame)
+        self.logger.error(exception)
+        self.stop()
+        raise exception
 
     def compiled(self) -> bool:
         return self._compiled

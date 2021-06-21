@@ -6,6 +6,7 @@ from typing import Optional
 from multiprocessing import Process, Value
 
 from rosny.process import ProcessStream
+from rosny.abstract import SignalException
 
 
 class CustomStream(ProcessStream):
@@ -194,31 +195,9 @@ class TestProcessStream:
     def test_handle_signal(self, stream: CustomStream):
         stream.start()
         time.sleep(0.1)
-        os.kill(os.getpid(), signal.SIGINT)
-        stream.wait()
-        stream.stop()
-        assert stream.stopped()
-        stream.join()
-        assert stream.joined()
-
-    def test_in_process_handle_signal(self):
-        class SignalStream(ProcessStream):
-            def __init__(self):
-                super().__init__()
-                self.signal = Value('i', 0)
-
-            def work(self):
-                time.sleep(0.1)
-                os.kill(os.getpid(), signal.SIGINT)
-
-            def _handle_signal(self, signum, frame):
-                self.signal.value = 1
-                super()._handle_signal(signum, frame)
-
-        stream = SignalStream()
-        stream.start()
-        stream.wait()
-        assert stream.signal.value
+        with pytest.raises(SignalException):
+            os.kill(os.getpid(), signal.SIGINT)
+            stream.wait()
         stream.stop()
         assert stream.stopped()
         stream.join()

@@ -6,6 +6,7 @@ from typing import Optional
 from threading import Thread
 
 from rosny.thread import ThreadStream
+from rosny.abstract import SignalException
 
 
 class CustomStream(ThreadStream):
@@ -195,8 +196,9 @@ class TestThreadStream:
     def test_handle_signal(self, stream: CustomStream):
         stream.start()
         time.sleep(0.1)
-        os.kill(os.getpid(), signal.SIGINT)
-        stream.wait()
+        with pytest.raises(SignalException):
+            os.kill(os.getpid(), signal.SIGINT)
+            stream.wait()
         stream.stop()
         assert stream.stopped()
         stream.join()
