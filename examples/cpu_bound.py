@@ -7,13 +7,11 @@ class CpuBoundThreadStream(ThreadStream):
     def __init__(self, number):
         super().__init__(min_sleep=0)
         self.number = number
-        self.result = 0
 
     def work(self):
-        self.result += self.number
         self.number -= 1
         if not self.number:
-            raise Exception(str(self.result))
+            self._internal_state.set_exit()
 
 
 class MainThreadStream(ComposeStream):
@@ -21,20 +19,17 @@ class MainThreadStream(ComposeStream):
         super().__init__()
         self.stream1 = CpuBoundThreadStream(6_000_000)
         self.stream2 = CpuBoundThreadStream(6_000_000)
-        self.stream3 = CpuBoundThreadStream(6_000_000)
 
 
 class CpuBoundProcessStream(ProcessStream):
     def __init__(self, number):
         super().__init__(min_sleep=0)
         self.number = number
-        self.result = 0
 
     def work(self):
-        self.result += self.number
         self.number -= 1
         if not self.number:
-            raise Exception(str(self.result))
+            self._internal_state.set_exit()
 
 
 class MainProcessStream(ComposeStream):
@@ -42,7 +37,6 @@ class MainProcessStream(ComposeStream):
         super().__init__()
         self.stream1 = CpuBoundProcessStream(6_000_000)
         self.stream2 = CpuBoundProcessStream(6_000_000)
-        self.stream3 = CpuBoundProcessStream(6_000_000)
 
 
 if __name__ == "__main__":
