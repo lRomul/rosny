@@ -1,3 +1,4 @@
+import abc
 import time
 from typing import Optional, Dict
 
@@ -6,7 +7,8 @@ from rosny.state import InternalState
 from rosny.signal import start_signals, stop_signals
 
 
-class ComposeStream(BaseStream):
+class ComposeStream(BaseStream, abc.ABC):
+    @abc.abstractmethod
     def __init__(self):
         super().__init__()
         self._streams: Dict[str, AbstractStream] = dict()
