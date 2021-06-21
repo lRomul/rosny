@@ -20,16 +20,11 @@ class ComposeStream(BaseStream):
                 internal_state: Optional[InternalState] = None,
                 name: Optional[str] = None,
                 handle_signals: bool = True):
-        super().compile(
-            internal_state=internal_state,
-            name=name,
-            handle_signals=handle_signals
-        )
+        super().compile(internal_state=internal_state, name=name)
         for stream_name, stream in self._streams.items():
             stream.compile(
                 internal_state=self._internal_state,
-                name=f"{self.name}/{stream_name}",
-                handle_signals=False
+                name=f"{self.name}/{stream_name}"
             )
 
     def start(self):
