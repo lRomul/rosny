@@ -7,7 +7,7 @@ from rosny.state import InternalState
 from rosny.signal import start_signals, stop_signals
 
 
-class ComposeStream(BaseStream, abc.ABC):
+class ComposeStream(BaseStream, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def __init__(self):
         super().__init__()

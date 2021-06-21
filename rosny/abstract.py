@@ -7,7 +7,7 @@ from rosny.signal import start_signals, stop_signals
 from rosny.utils import setup_logger, default_object_name
 
 
-class AbstractStream(abc.ABC):
+class AbstractStream(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def compile(self,
                 internal_state: Optional[InternalState] = None,
@@ -67,7 +67,7 @@ class AbstractStream(abc.ABC):
         pass
 
 
-class BaseStream(AbstractStream, abc.ABC):
+class BaseStream(AbstractStream, metaclass=abc.ABCMeta):
     def __init__(self):
         self.name = default_object_name(self)
         self.logger = setup_logger(self.name)
@@ -104,7 +104,7 @@ class BaseStream(AbstractStream, abc.ABC):
             self.stop()
 
 
-class LoopStream(BaseStream, abc.ABC):
+class LoopStream(BaseStream, metaclass=abc.ABCMeta):
     def __init__(self,
                  loop_rate: Optional[float] = None,
                  min_sleep: float = 1e-9):

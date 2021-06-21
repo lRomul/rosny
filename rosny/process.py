@@ -5,7 +5,7 @@ from multiprocessing import Process, Value
 from rosny.abstract import LoopStream
 
 
-class ProcessStream(LoopStream, abc.ABC):
+class ProcessStream(LoopStream, metaclass=abc.ABCMeta):
     def __init__(self,
                  loop_rate: Optional[float] = None,
                  min_sleep: float = 1e-9):

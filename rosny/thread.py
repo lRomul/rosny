@@ -5,7 +5,7 @@ from typing import Optional
 from rosny.abstract import LoopStream
 
 
-class ThreadStream(LoopStream, abc.ABC):
+class ThreadStream(LoopStream, metaclass=abc.ABCMeta):
     def __init__(self,
                  loop_rate: Optional[float] = None,
                  min_sleep: float = 1e-9):
