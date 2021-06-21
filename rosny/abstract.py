@@ -113,6 +113,7 @@ class LoopStream(BaseStream, abc.ABC):
         self.rate_manager = LoopRateManager(loop_rate=loop_rate,
                                             min_sleep=min_sleep)
 
+    @abc.abstractmethod
     def work(self):
         pass
 

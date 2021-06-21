@@ -1,10 +1,11 @@
+import abc
 from typing import Optional
 from multiprocessing import Process, Value
 
 from rosny.abstract import LoopStream
 
 
-class ProcessStream(LoopStream):
+class ProcessStream(LoopStream, abc.ABC):
     def __init__(self,
                  loop_rate: Optional[float] = None,
                  min_sleep: float = 1e-9):

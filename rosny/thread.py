@@ -1,10 +1,11 @@
+import abc
 from threading import Thread
 from typing import Optional
 
 from rosny.abstract import LoopStream
 
 
-class ThreadStream(LoopStream):
+class ThreadStream(LoopStream, abc.ABC):
     def __init__(self,
                  loop_rate: Optional[float] = None,
                  min_sleep: float = 1e-9):
