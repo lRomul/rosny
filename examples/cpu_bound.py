@@ -1,5 +1,6 @@
+import time
+
 from rosny import ComposeStream, ThreadStream, ProcessStream
-from rosny.timing import LoopTimeMeter
 
 
 class CpuBoundThreadStream(ThreadStream):
@@ -45,23 +46,20 @@ class MainProcessStream(ComposeStream):
 
 
 if __name__ == "__main__":
-    time_meter = LoopTimeMeter()
+    thread_stream = MainThreadStream()
+    thread_stream.start()
+    start_time = time.time()
+    thread_stream.wait()
+    end_time = time.time()
+    thread_stream.stop()
+    thread_stream.join()
+    print(f"Threading duration {end_time - start_time} seconds.")
 
-    stream = MainThreadStream()
-    stream.start()
-    time_meter.start()
-    stream.wait()
-    time_meter.end()
-    stream.stop()
-    stream.join()
-    print(f"Threading duration {time_meter.mean} seconds.")
-
-    time_meter.reset()
-    stream = MainProcessStream()
-    stream.start()
-    time_meter.start()
-    stream.wait()
-    time_meter.end()
-    stream.stop()
-    stream.join()
-    print(f"Multiprocess duration {time_meter.mean} seconds.")
+    process_stream = MainProcessStream()
+    process_stream.start()
+    start_time = time.time()
+    process_stream.wait()
+    end_time = time.time()
+    process_stream.stop()
+    process_stream.join()
+    print(f"Multiprocess duration {end_time - start_time} seconds.")
