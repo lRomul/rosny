@@ -60,11 +60,11 @@ class LoopRateManager:
         self._build(value)
 
     def timing(self):
-        self._time_meter.end()
-
         if self._loop_rate is None:
-            sleep_time = self.min_sleep
+            if self.min_sleep:
+                time.sleep(self.min_sleep)
         else:
+            self._time_meter.end()
             self._sleep_delay += self._time_meter.mean - self._loop_time
             self._sleep_delay = max(self._sleep_delay, 0)
 
@@ -74,5 +74,5 @@ class LoopRateManager:
                           - self._sleep_delay)
             sleep_time = max(self.min_sleep, sleep_time)
 
-        time.sleep(sleep_time)
-        self._prev_time = time.perf_counter()
+            time.sleep(sleep_time)
+            self._prev_time = time.perf_counter()
