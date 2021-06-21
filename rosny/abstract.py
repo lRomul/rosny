@@ -1,9 +1,9 @@
 import abc
-import signal
 from typing import Optional, Union
 
 from rosny.state import InternalState
 from rosny.timing import LoopRateManager
+from rosny.signal import start_signals, stop_signals
 from rosny.utils import setup_logger, default_object_name
 
 
@@ -11,7 +11,8 @@ class AbstractStream(abc.ABC):
     @abc.abstractmethod
     def compile(self,
                 internal_state: Optional[InternalState] = None,
-                name: Optional[str] = None):
+                name: Optional[str] = None,
+                handle_signals: bool = True):
         pass
 
     def on_start_begin(self):
@@ -71,31 +72,25 @@ class AbstractStream(abc.ABC):
             self.stop()
 
 
-class SignalException(BaseException):
-    def __init__(self, signum, frame):
-        message = f"Handle signal: {signal.Signals(signum).name}"
-        super().__init__(message)
-        self.signum = signum
-        self.frame = frame
-
-
 class BaseStream(AbstractStream, abc.ABC):
     def __init__(self):
         self.name = default_object_name(self)
         self.logger = setup_logger(self.name)
         self._internal_state = InternalState()
         self._compiled = False
+        self._handle_signals = True
 
     def compile(self,
                 internal_state: Optional[InternalState] = None,
-                name: Optional[str] = None):
+                name: Optional[str] = None,
+                handle_signals: bool = True):
         self.name = self.__class__.__name__ if name is None else name
         self.logger = setup_logger(self.name)
         if internal_state is None:
             self._internal_state = InternalState()
-            self._init_signals()
         else:
             self._internal_state = internal_state
+        self._handle_signals = handle_signals
         self._compiled = True
 
     def wait(self, timeout: Optional[float] = None):
@@ -107,17 +102,6 @@ class BaseStream(AbstractStream, abc.ABC):
             self.logger.info("Waiting ended, exit event is set")
         else:
             self.logger.info("Waiting ended, timeout exceeded")
-
-    def _init_signals(self):
-        signal.signal(signal.SIGINT, self._handle_signal)
-        signal.signal(signal.SIGTERM, self._handle_signal)
-        signal.signal(signal.SIGQUIT, self._handle_signal)
-
-    def _handle_signal(self, signum, frame):
-        exception = SignalException(signum, frame)
-        self.logger.error(exception)
-        self.stop()
-        raise exception
 
     def compiled(self) -> bool:
         return self._compiled
@@ -168,6 +152,8 @@ class LoopStream(BaseStream, abc.ABC):
                     self.compile()
                 self.on_start_begin()
                 self._start_driver()
+                if self._handle_signals:
+                    start_signals(self)
                 self.on_start_end()
                 self.logger.info("Stream started")
             else:
@@ -180,6 +166,8 @@ class LoopStream(BaseStream, abc.ABC):
         if not self.stopped():
             self.on_stop_begin()
             self._stop_driver()
+            if self._handle_signals:
+                stop_signals(self)
             self.on_stop_end()
             self.logger.info("Stream stopped")
         else:

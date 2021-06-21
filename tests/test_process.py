@@ -6,7 +6,7 @@ from typing import Optional
 from multiprocessing import Process, Value
 
 from rosny.process import ProcessStream
-from rosny.abstract import SignalException
+from rosny.signal import SignalException
 
 
 class CustomStream(ProcessStream):

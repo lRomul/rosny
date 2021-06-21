@@ -6,7 +6,7 @@ from typing import Optional
 from threading import Thread
 
 from rosny.thread import ThreadStream
-from rosny.abstract import SignalException
+from rosny.signal import SignalException
 
 
 class CustomStream(ThreadStream):

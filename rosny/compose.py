@@ -3,6 +3,7 @@ from typing import Optional, Dict
 
 from rosny.abstract import BaseStream, AbstractStream
 from rosny.state import InternalState
+from rosny.signal import start_signals, stop_signals
 
 
 class ComposeStream(BaseStream):
@@ -17,12 +18,18 @@ class ComposeStream(BaseStream):
 
     def compile(self,
                 internal_state: Optional[InternalState] = None,
-                name: Optional[str] = None):
-        super().compile(internal_state=internal_state, name=name)
+                name: Optional[str] = None,
+                handle_signals: bool = True):
+        super().compile(
+            internal_state=internal_state,
+            name=name,
+            handle_signals=handle_signals
+        )
         for stream_name, stream in self._streams.items():
             stream.compile(
                 internal_state=self._internal_state,
-                name=f"{self.name}/{stream_name}"
+                name=f"{self.name}/{stream_name}",
+                handle_signals=False
             )
 
     def start(self):
@@ -32,6 +39,8 @@ class ComposeStream(BaseStream):
         self.on_start_begin()
         for stream in self._streams.values():
             stream.start()
+        if self._handle_signals:
+            start_signals(self)
         self.on_start_end()
         self.logger.info("Stream started")
 
@@ -40,6 +49,8 @@ class ComposeStream(BaseStream):
         self.on_stop_begin()
         for stream in self._streams.values():
             stream.stop()
+        if self._handle_signals:
+            stop_signals(self)
         self.on_stop_end()
         self.logger.info("Stream stopped")
 
