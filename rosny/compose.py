@@ -28,7 +28,7 @@ class ComposeStream(BaseStream):
             )
 
     def start(self):
-        if not self._compiled:
+        if not self.compiled():
             self.compile()
         self.logger.info("Starting stream")
         self.on_start_begin()
