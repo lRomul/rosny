@@ -107,8 +107,10 @@ class BaseStream(AbstractStream, metaclass=abc.ABCMeta):
 class LoopStream(BaseStream, metaclass=abc.ABCMeta):
     def __init__(self,
                  loop_rate: Optional[float] = None,
-                 min_sleep: float = 1e-9):
+                 min_sleep: float = 1e-9,
+                 daemon: bool = False):
         super().__init__()
+        self.daemon = daemon
         self._driver = None
         self.rate_manager = LoopRateManager(loop_rate=loop_rate,
                                             min_sleep=min_sleep)
