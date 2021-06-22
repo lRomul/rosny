@@ -80,7 +80,7 @@ class BaseStream(AbstractStream, metaclass=abc.ABCMeta):
                 name: Optional[str] = None):
         self.name = self.__class__.__name__ if name is None else name
         self.logger = setup_logger(self.name)
-        if internal_state is None:
+        if internal_state is None:  # is it root stream
             self._handle_signals = True
         else:
             self._internal_state = internal_state

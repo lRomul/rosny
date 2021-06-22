@@ -8,15 +8,17 @@ from rosny.abstract import LoopStream
 class ProcessStream(LoopStream, metaclass=abc.ABCMeta):
     def __init__(self,
                  loop_rate: Optional[float] = None,
-                 min_sleep: float = 1e-9):
+                 min_sleep: float = 1e-9,
+                 daemon: bool = False):
         super().__init__(loop_rate=loop_rate, min_sleep=min_sleep)
+        self.daemon = daemon
         self._driver = None
         self._stopped = Value('i', 1)
 
     def _start_driver(self):
         self._driver = Process(target=self.work_loop,
                                name=self.name,
-                               daemon=True)
+                               daemon=self.daemon)
         self.logger.info(f"Starting process {self.name}")
         self._stopped.value = 0
         self._driver.start()
