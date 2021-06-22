@@ -202,3 +202,18 @@ class TestProcessStream:
         assert stream.stopped()
         stream.join()
         assert stream.joined()
+
+    @pytest.mark.parametrize("daemon", [True, False])
+    def test_daemon(self, daemon):
+        class DaemonStream(ProcessStream):
+            def __init__(self, daemon):
+                super().__init__(daemon=daemon)
+
+            def work(self):
+                time.sleep(0.1)
+
+        stream = DaemonStream(daemon)
+        stream.start()
+        assert stream._driver.daemon == daemon
+        stream.stop()
+        stream.join()
