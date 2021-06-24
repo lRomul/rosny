@@ -10,6 +10,10 @@ rosny is a simple library for building concurrency systems.
 
 ## Installation
 
+Tested on:
+* Linux
+* Python >= 3.6
+
 From pip:
 
 ```bash
