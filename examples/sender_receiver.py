@@ -9,7 +9,7 @@ class SenderStream(ThreadStream):  # using threading.Thread
         self.queue = queue
         self.count = 0
 
-    # run the method in a loop in a separate process
+    # run the method in a loop in a separate thread
     def work(self):
         self.queue.put(self.count)
         self.logger.info(f'{os.getpid()}: put {self.count}')
@@ -27,7 +27,7 @@ class ReceiverStream(ProcessStream):  # using multiprocessing.Process
         self.logger.info(f'{os.getpid()}: get {value}')
 
 
-class MainStream(ComposeStream):
+class MainStream(ComposeStream):  # merging several streams
     def __init__(self):
         super().__init__()
         queue = Queue()

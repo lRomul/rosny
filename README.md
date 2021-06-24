@@ -29,32 +29,35 @@ pip install -U git+https://github.com/lRomul/rosny.git@master
 ## Example
 
 ```python
-from queue import Queue
-from rosny import ThreadStream, ComposeStream
+from multiprocessing import Queue
+from rosny import ThreadStream, ProcessStream, ComposeStream
 
 
-class SenderStream(ThreadStream):
+class SenderStream(ThreadStream):  # using threading.Thread
     def __init__(self, queue: Queue):
         super().__init__(loop_rate=30)
         self.queue = queue
         self.count = 0
 
+    # run the method in a loop in a separate thread
     def work(self):
         self.queue.put(self.count)
+        self.logger.info(f'put: {self.count}')
         self.count += 1
 
 
-class ReceiverStream(ThreadStream):
+class ReceiverStream(ProcessStream):  # using multiprocessing.Process
     def __init__(self, queue: Queue):
         super().__init__()
         self.queue = queue
 
+    # run the method in a loop in a separate process
     def work(self):
         value = self.queue.get(timeout=1)
-        self.logger.info(f'{value}')
+        self.logger.info(f'get: {value}')
 
 
-class MainStream(ComposeStream):
+class MainStream(ComposeStream):  # merging several streams
     def __init__(self):
         super().__init__()
         queue = Queue()
@@ -65,7 +68,7 @@ class MainStream(ComposeStream):
 if __name__ == "__main__":
     stream = MainStream()
     stream.start()
-    stream.wait(10)
+    stream.wait(5)
     stream.stop()
     stream.join()
 ```
