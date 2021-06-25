@@ -1,5 +1,7 @@
 import os
+import multiprocessing
 from multiprocessing import Queue
+
 from rosny import ThreadStream, ProcessStream, ComposeStream
 
 
@@ -12,7 +14,7 @@ class SenderStream(ThreadStream):  # using threading.Thread
     # run the method in a loop in a separate thread
     def work(self):
         self.queue.put(self.count)
-        self.logger.info(f'{os.getpid()}: put {self.count}')
+        self.logger.info(f'pid {os.getpid()}, put {self.count}')
         self.count += 1
 
 
@@ -24,7 +26,7 @@ class ReceiverStream(ProcessStream):  # using multiprocessing.Process
     # run the method in a loop in a separate process
     def work(self):
         value = self.queue.get(timeout=1)
-        self.logger.info(f'{os.getpid()}: get {value}')
+        self.logger.info(f'pid {os.getpid()}, get {value}')
 
 
 class MainStream(ComposeStream):  # merging several streams
@@ -33,10 +35,18 @@ class MainStream(ComposeStream):  # merging several streams
         queue = Queue()
         self.sender = SenderStream(queue)
         self.receiver = ReceiverStream(queue)
-        self.logger.info(f'{os.getpid()}: init')
+        self.compile()
+        self.logger.info(f'pid {os.getpid()}, init')
 
 
 if __name__ == "__main__":
+    """
+    Method of processes starting that available on Unix, Windows, and macOS.
+    You can use any method available on your OS
+    https://docs.python.org/3/library/multiprocessing.html#contexts-and-start-methods
+    """
+    multiprocessing.set_start_method('spawn')
+
     stream = MainStream()
     stream.start()
     stream.wait(5)

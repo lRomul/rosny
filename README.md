@@ -42,7 +42,7 @@ class SenderStream(ThreadStream):  # using threading.Thread
     # run the method in a loop in a separate thread
     def work(self):
         self.queue.put(self.count)
-        self.logger.info(f'put: {self.count}')
+        self.logger.info(f'put {self.count}')
         self.count += 1
 
 
@@ -54,7 +54,7 @@ class ReceiverStream(ProcessStream):  # using multiprocessing.Process
     # run the method in a loop in a separate process
     def work(self):
         value = self.queue.get(timeout=1)
-        self.logger.info(f'get: {value}')
+        self.logger.info(f'get {value}')
 
 
 class MainStream(ComposeStream):  # merging several streams

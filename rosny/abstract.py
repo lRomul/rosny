@@ -120,6 +120,7 @@ class LoopStream(BaseStream, metaclass=abc.ABCMeta):
         pass
 
     def work_loop(self):
+        self.logger = setup_logger(self.name)  # necessary for spawn and forkserver
         try:
             self.rate_manager.reset()
             while not self.stopped():
