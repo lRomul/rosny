@@ -3,7 +3,7 @@ from typing import Optional, Union
 
 from rosny.state import CommonState
 from rosny.abstract import BaseStream
-from rosny.timing import LoopRateManager
+from rosny.timing import LoopRateManager, Profiler
 from rosny.signal import start_signals, stop_signals
 
 
@@ -11,12 +11,14 @@ class LoopStream(BaseStream, metaclass=abc.ABCMeta):
     def __init__(self,
                  loop_rate: Optional[float] = None,
                  min_sleep: float = 1e-9,
+                 profile_interval: Optional[float] = None,
                  daemon: bool = False):
         super().__init__()
         self.daemon = daemon
         self._driver = None
         self.rate_manager = LoopRateManager(loop_rate=loop_rate,
                                             min_sleep=min_sleep)
+        self.profiler = Profiler(stream=self, interval=profile_interval)
 
     @abc.abstractmethod
     def work(self):
@@ -26,9 +28,11 @@ class LoopStream(BaseStream, metaclass=abc.ABCMeta):
         self.on_work_loop_begin()
         try:
             self.rate_manager.reset()
+            self.profiler.reset(self)
             while not self.stopped():
                 self.work()
                 self.rate_manager.timing()
+                self.profiler.profile()
         except (Exception, KeyboardInterrupt) as exception:
             self.on_catch_exception(exception)
         finally:

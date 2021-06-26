@@ -20,7 +20,7 @@ class SenderStream(ThreadStream):  # using threading.Thread
 
 class ReceiverStream(ProcessStream):  # using multiprocessing.Process
     def __init__(self, queue: Queue):
-        super().__init__()
+        super().__init__(profile_interval=3)
         self.queue = queue
 
     # run the method in a loop in a separate process
@@ -49,6 +49,6 @@ if __name__ == "__main__":
 
     stream = MainStream()
     stream.start()
-    stream.wait(5)
+    stream.wait(12)
     stream.stop()
     stream.join()
