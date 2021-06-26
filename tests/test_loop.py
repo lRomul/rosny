@@ -104,9 +104,12 @@ class TestProcessStream:
 
     def test_loop_rate_work(self, stream):
         stream.rate_manager.loop_rate = 120
+        stream.profiler.interval = 1
         stream.start()
         stream.wait(timeout=3.0)
-        assert pytest.approx(stream.count.value, rel=0.1) == 360
+        assert pytest.approx(stream.count.value, rel=0.05) == 360
+        loop_time = stream.common_state.profile_stats[stream.name]
+        assert pytest.approx(loop_time, rel=0.05) == 1 / 120
 
     def test_join_timeout(self, loop_stream_class, time_meter):
         class SleepStream(loop_stream_class):
