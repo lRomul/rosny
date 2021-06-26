@@ -1,14 +1,16 @@
 import pytest
+from multiprocessing import Manager
 
-from rosny import ComposeStream, ThreadStream
+from rosny import ThreadStream, ProcessStream, ComposeStream
 
 
-@pytest.mark.parametrize('stream_class', [ThreadStream, ComposeStream])
+@pytest.mark.parametrize('stream_class', [ThreadStream, ProcessStream, ComposeStream])
 def test_stream_callbacks(stream_class):
     class CallbackStream(stream_class):
         def __init__(self):
             super().__init__()
-            self.callback_history = []
+            self.manager = Manager()
+            self.callback_history = self.manager.list([])
 
         def work(self):
             pass
@@ -46,7 +48,7 @@ def test_stream_callbacks(stream_class):
     assert stream.callback_history[-2:] == ['on_stop_begin', 'on_stop_end']
     stream.join()
     assert stream.callback_history[-2:] == ['on_join_begin', 'on_join_end']
-    assert stream.callback_history == [
+    assert stream.callback_history[:] == [
         'on_compile_begin', 'on_compile_end',
         'on_start_begin', 'on_start_end',
         'on_stop_begin', 'on_stop_end',
