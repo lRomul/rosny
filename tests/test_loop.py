@@ -3,7 +3,7 @@ import time
 import signal
 import pytest
 from typing import Optional
-from multiprocessing import Value
+from multiprocessing import Value, Manager
 
 from rosny import ThreadStream, ProcessStream
 from rosny.signal import SignalException
@@ -177,24 +177,34 @@ class TestProcessStream:
         assert stream._driver is None
         assert stream.joined()
 
-    def test_exception_catching(self, loop_stream_class):
-        class ExceptionStream(loop_stream_class):
+    def test_callbacks(self, loop_stream_class):
+        class CallbackStream(loop_stream_class):
             def __init__(self):
                 super().__init__()
-                self.exception = Value('i', 0)
+                self.manager = Manager()
+                self.callback_history = self.manager.list([])
 
             def work(self):
                 time.sleep(0.1)
                 raise Exception("test")
 
             def on_catch_exception(self, exception):
-                self.exception.value = 1
+                self.callback_history += ['on_catch_exception']
                 super().on_catch_exception(exception)
 
-        stream = ExceptionStream()
+            def on_work_loop_begin(self):
+                self.callback_history += ['on_work_loop_begin']
+
+            def on_work_loop_end(self):
+                self.callback_history += ['on_work_loop_end']
+
+        stream = CallbackStream()
         stream.start()
         stream.wait()
-        assert stream.exception.value
+        time.sleep(0.1)
+        assert stream.callback_history[:] == [
+            'on_work_loop_begin', 'on_catch_exception', 'on_work_loop_end'
+        ]
         stream.stop()
         stream.join()
 

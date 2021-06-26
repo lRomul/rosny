@@ -25,6 +25,7 @@ class LoopStream(BaseStream, metaclass=abc.ABCMeta):
 
     def work_loop(self):
         self.logger = setup_logger(self.name)  # necessary for spawn and forkserver
+        self.on_work_loop_begin()
         try:
             self.rate_manager.reset()
             while not self.stopped():
@@ -32,10 +33,18 @@ class LoopStream(BaseStream, metaclass=abc.ABCMeta):
                 self.rate_manager.timing()
         except (Exception, KeyboardInterrupt) as exception:
             self.on_catch_exception(exception)
+        finally:
+            self.on_work_loop_end()
 
     def on_catch_exception(self, exception: Union[Exception, KeyboardInterrupt]):
         self.logger.exception(exception)
         self.common_state.set_exit()
+
+    def on_work_loop_begin(self):
+        pass
+
+    def on_work_loop_end(self):
+        pass
 
     @abc.abstractmethod
     def _start_driver(self):
