@@ -1,6 +1,6 @@
 import signal
 
-_signals = [signal.SIGINT, signal.SIGTERM, signal.SIGQUIT]
+_signals = [signal.SIGINT, signal.SIGTERM]
 _default_handlers = {sig: signal.getsignal(signal.SIGINT) for sig in _signals}
 
 
