@@ -22,12 +22,6 @@ class AbstractStream(metaclass=abc.ABCMeta):
     def start(self):
         pass
 
-    def on_wait_begin(self):
-        pass
-
-    def on_wait_end(self):
-        pass
-
     @abc.abstractmethod
     def wait(self, timeout: Optional[float] = None):
         pass
@@ -86,9 +80,7 @@ class BaseStream(AbstractStream, metaclass=abc.ABCMeta):
 
     def wait(self, timeout: Optional[float] = None):
         self.logger.info(f"Waiting stream with timeout {timeout}")
-        self.on_wait_begin()
         self.internal_state.wait_exit(timeout=timeout)
-        self.on_wait_end()
         if self.internal_state.exit_is_set():
             self.logger.info("Waiting ended, exit event is set")
         else:
