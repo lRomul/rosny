@@ -5,7 +5,6 @@ from rosny.state import CommonState
 from rosny.abstract import BaseStream
 from rosny.timing import LoopRateManager
 from rosny.signal import start_signals, stop_signals
-from rosny.utils import setup_logger
 
 
 class LoopStream(BaseStream, metaclass=abc.ABCMeta):
@@ -24,7 +23,6 @@ class LoopStream(BaseStream, metaclass=abc.ABCMeta):
         pass
 
     def work_loop(self):
-        self.logger = setup_logger(self.name)  # necessary for spawn and forkserver
         self.on_work_loop_begin()
         try:
             self.rate_manager.reset()

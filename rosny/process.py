@@ -3,6 +3,7 @@ from typing import Optional
 from multiprocessing import Process, Value
 
 from rosny.loop import LoopStream
+from rosny.utils import setup_logger
 
 
 class ProcessStream(LoopStream, metaclass=abc.ABCMeta):
@@ -13,6 +14,10 @@ class ProcessStream(LoopStream, metaclass=abc.ABCMeta):
         super().__init__(loop_rate=loop_rate, min_sleep=min_sleep, daemon=daemon)
         self._driver = None
         self._stopped = Value('i', 1)
+
+    def work_loop(self):
+        self.logger = setup_logger(self.name)  # necessary for spawn and forkserver
+        super().work_loop()
 
     def _start_driver(self):
         self._driver = Process(target=self.work_loop,
