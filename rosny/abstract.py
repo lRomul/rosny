@@ -69,7 +69,7 @@ class BaseStream(AbstractStream, metaclass=abc.ABCMeta):
     def __init__(self):
         self.name = default_object_name(self)
         self.logger = setup_logger(self.name)
-        self._internal_state = InternalState()
+        self.internal_state = InternalState()
         self._compiled = False
         self._handle_signals = False
 
@@ -81,15 +81,15 @@ class BaseStream(AbstractStream, metaclass=abc.ABCMeta):
         if internal_state is None:  # is it root stream
             self._handle_signals = True
         else:
-            self._internal_state = internal_state
+            self.internal_state = internal_state
         self._compiled = True
 
     def wait(self, timeout: Optional[float] = None):
         self.logger.info(f"Waiting stream with timeout {timeout}")
         self.on_wait_begin()
-        self._internal_state.wait_exit(timeout=timeout)
+        self.internal_state.wait_exit(timeout=timeout)
         self.on_wait_end()
-        if self._internal_state.exit_is_set():
+        if self.internal_state.exit_is_set():
             self.logger.info("Waiting ended, exit event is set")
         else:
             self.logger.info("Waiting ended, timeout exceeded")

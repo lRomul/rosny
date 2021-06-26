@@ -11,7 +11,7 @@ class CpuBoundThreadStream(ThreadStream):
     def work(self):
         self.number -= 1
         if not self.number:
-            self._internal_state.set_exit()
+            self.internal_state.set_exit()
 
 
 class MainThreadStream(ComposeStream):
@@ -29,7 +29,7 @@ class CpuBoundProcessStream(ProcessStream):
     def work(self):
         self.number -= 1
         if not self.number:
-            self._internal_state.set_exit()
+            self.internal_state.set_exit()
 
 
 class MainProcessStream(ComposeStream):

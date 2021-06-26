@@ -25,7 +25,7 @@ class ComposeStream(BaseStream, metaclass=abc.ABCMeta):
         super().compile(internal_state=internal_state, name=name)
         for stream_name, stream in self._streams.items():
             stream.compile(
-                internal_state=self._internal_state,
+                internal_state=self.internal_state,
                 name=f"{self.name}/{stream_name}"
             )
 

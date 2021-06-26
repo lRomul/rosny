@@ -34,7 +34,7 @@ class LoopStream(BaseStream, metaclass=abc.ABCMeta):
 
     def on_catch_exception(self, exception: Union[Exception, KeyboardInterrupt]):
         self.logger.exception(exception)
-        self._internal_state.set_exit()
+        self.internal_state.set_exit()
 
     @abc.abstractmethod
     def _start_driver(self):
@@ -54,7 +54,7 @@ class LoopStream(BaseStream, metaclass=abc.ABCMeta):
             if self.joined():
                 if not self.compiled():
                     self.compile()
-                self._internal_state.clear_exit()
+                self.internal_state.clear_exit()
                 self.on_start_begin()
                 self._start_driver()
                 if self._handle_signals:
