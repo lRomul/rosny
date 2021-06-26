@@ -19,15 +19,17 @@ class ComposeStream(BaseStream, metaclass=abc.ABCMeta):
         object.__setattr__(self, name, value)
 
     def compile(self,
-                internal_state: Optional[CommonState] = None,
+                common_state: Optional[CommonState] = None,
                 name: Optional[str] = None,
                 handle_signals: bool = True):
-        super().compile(internal_state=internal_state, name=name)
+        self.on_compile_begin()
+        super().compile(common_state=common_state, name=name)
         for stream_name, stream in self._streams.items():
             stream.compile(
-                internal_state=self.common_state,
+                common_state=self.common_state,
                 name=f"{self.name}/{stream_name}"
             )
+        self.on_compile_end()
 
     def start(self):
         if not self.compiled():

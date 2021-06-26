@@ -13,6 +13,12 @@ def test_stream_callbacks(stream_class):
         def work(self):
             pass
 
+        def on_compile_begin(self):
+            self.callback_history += ['on_compile_begin']
+
+        def on_compile_end(self):
+            self.callback_history += ['on_compile_end']
+
         def on_start_begin(self):
             self.callback_history += ['on_start_begin']
 
@@ -32,6 +38,8 @@ def test_stream_callbacks(stream_class):
             self.callback_history += ['on_join_end']
 
     stream = CallbackStream()
+    stream.compile()
+    assert stream.callback_history[-2:] == ['on_compile_begin', 'on_compile_end']
     stream.start()
     assert stream.callback_history[-2:] == ['on_start_begin', 'on_start_end']
     stream.stop()
@@ -39,6 +47,7 @@ def test_stream_callbacks(stream_class):
     stream.join()
     assert stream.callback_history[-2:] == ['on_join_begin', 'on_join_end']
     assert stream.callback_history == [
+        'on_compile_begin', 'on_compile_end',
         'on_start_begin', 'on_start_end',
         'on_stop_begin', 'on_stop_end',
         'on_join_begin', 'on_join_end'

@@ -1,6 +1,7 @@
 import abc
 from typing import Optional, Union
 
+from rosny.state import CommonState
 from rosny.abstract import BaseStream
 from rosny.timing import LoopRateManager
 from rosny.signal import start_signals, stop_signals
@@ -47,6 +48,13 @@ class LoopStream(BaseStream, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def _join_driver(self, timeout):
         pass
+
+    def compile(self,
+                common_state: Optional[CommonState] = None,
+                name: Optional[str] = None):
+        self.on_compile_begin()
+        super().compile(common_state=common_state, name=name)
+        self.on_compile_end()
 
     def start(self):
         self.logger.info("Starting stream")

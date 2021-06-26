@@ -6,9 +6,15 @@ from rosny.utils import setup_logger, default_object_name
 
 
 class AbstractStream(metaclass=abc.ABCMeta):
+    def on_compile_begin(self):
+        pass
+
+    def on_compile_end(self):
+        pass
+
     @abc.abstractmethod
     def compile(self,
-                internal_state: Optional[CommonState] = None,
+                common_state: Optional[CommonState] = None,
                 name: Optional[str] = None):
         pass
 
@@ -68,14 +74,14 @@ class BaseStream(AbstractStream, metaclass=abc.ABCMeta):
         self._handle_signals = False
 
     def compile(self,
-                internal_state: Optional[CommonState] = None,
+                common_state: Optional[CommonState] = None,
                 name: Optional[str] = None):
         self.name = self.__class__.__name__ if name is None else name
         self.logger = setup_logger(self.name)
-        if internal_state is None:  # is it root stream
+        if common_state is None:  # is it root stream
             self._handle_signals = True
         else:
-            self.common_state = internal_state
+            self.common_state = common_state
         self._compiled = True
 
     def wait(self, timeout: Optional[float] = None):
