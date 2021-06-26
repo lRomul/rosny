@@ -2,7 +2,7 @@ import abc
 from typing import Optional
 from multiprocessing import Process, Value
 
-from rosny.abstract import LoopStream
+from rosny.loop import LoopStream
 
 
 class ProcessStream(LoopStream, metaclass=abc.ABCMeta):

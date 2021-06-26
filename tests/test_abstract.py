@@ -1,4 +1,5 @@
-from rosny.abstract import AbstractStream, LoopStream
+from rosny.abstract import AbstractStream
+from rosny.loop import LoopStream
 
 
 def test_abstract_stream(monkeypatch):

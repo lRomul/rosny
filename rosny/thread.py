@@ -2,7 +2,7 @@ import abc
 from threading import Thread
 from typing import Optional
 
-from rosny.abstract import LoopStream
+from rosny.loop import LoopStream
 
 
 class ThreadStream(LoopStream, metaclass=abc.ABCMeta):
