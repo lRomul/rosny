@@ -2,7 +2,7 @@ import multiprocessing
 from typing import Optional
 
 
-class InternalState:
+class CommonState:
     def __init__(self):
         self._exit_event = multiprocessing.Event()
 

@@ -1,14 +1,14 @@
 import abc
 from typing import Optional
 
-from rosny.state import InternalState
+from rosny.state import CommonState
 from rosny.utils import setup_logger, default_object_name
 
 
 class AbstractStream(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def compile(self,
-                internal_state: Optional[InternalState] = None,
+                internal_state: Optional[CommonState] = None,
                 name: Optional[str] = None):
         pass
 
@@ -63,25 +63,25 @@ class BaseStream(AbstractStream, metaclass=abc.ABCMeta):
     def __init__(self):
         self.name = default_object_name(self)
         self.logger = setup_logger(self.name)
-        self.internal_state = InternalState()
+        self.common_state = CommonState()
         self._compiled = False
         self._handle_signals = False
 
     def compile(self,
-                internal_state: Optional[InternalState] = None,
+                internal_state: Optional[CommonState] = None,
                 name: Optional[str] = None):
         self.name = self.__class__.__name__ if name is None else name
         self.logger = setup_logger(self.name)
         if internal_state is None:  # is it root stream
             self._handle_signals = True
         else:
-            self.internal_state = internal_state
+            self.common_state = internal_state
         self._compiled = True
 
     def wait(self, timeout: Optional[float] = None):
         self.logger.info(f"Waiting stream with timeout {timeout}")
-        self.internal_state.wait_exit(timeout=timeout)
-        if self.internal_state.exit_is_set():
+        self.common_state.wait_exit(timeout=timeout)
+        if self.common_state.exit_is_set():
             self.logger.info("Waiting ended, exit event is set")
         else:
             self.logger.info("Waiting ended, timeout exceeded")

@@ -1,10 +1,10 @@
 import pytest
-from rosny.state import InternalState
+from rosny.state import CommonState
 
 
 @pytest.fixture(scope='function')
-def internal_state() -> InternalState:
-    return InternalState()
+def internal_state() -> CommonState:
+    return CommonState()
 
 
 class TestInternalState:

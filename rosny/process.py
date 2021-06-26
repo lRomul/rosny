@@ -31,7 +31,7 @@ class ProcessStream(LoopStream, metaclass=abc.ABCMeta):
             self.logger.error(f"Process '{self._driver}' join timeout {timeout}")
         else:
             self._driver = None
-            self.internal_state.clear_exit()
+            self.common_state.clear_exit()
 
     def stopped(self) -> bool:
         return self._stopped.value

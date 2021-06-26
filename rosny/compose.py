@@ -3,7 +3,7 @@ import time
 from typing import Optional, Dict
 
 from rosny.abstract import BaseStream, AbstractStream
-from rosny.state import InternalState
+from rosny.state import CommonState
 from rosny.signal import start_signals, stop_signals
 
 
@@ -19,13 +19,13 @@ class ComposeStream(BaseStream, metaclass=abc.ABCMeta):
         object.__setattr__(self, name, value)
 
     def compile(self,
-                internal_state: Optional[InternalState] = None,
+                internal_state: Optional[CommonState] = None,
                 name: Optional[str] = None,
                 handle_signals: bool = True):
         super().compile(internal_state=internal_state, name=name)
         for stream_name, stream in self._streams.items():
             stream.compile(
-                internal_state=self.internal_state,
+                internal_state=self.common_state,
                 name=f"{self.name}/{stream_name}"
             )
 
