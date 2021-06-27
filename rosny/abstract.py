@@ -15,7 +15,8 @@ class AbstractStream(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def compile(self,
                 common_state: Optional[CommonState] = None,
-                name: Optional[str] = None):
+                name: Optional[str] = None,
+                handle_signals: bool = True):
         pass
 
     def on_start_begin(self):
@@ -71,17 +72,17 @@ class BaseStream(AbstractStream, metaclass=abc.ABCMeta):
         self.logger = setup_logger(self.name)
         self.common_state = CommonState()
         self._compiled = False
-        self._handle_signals = False
+        self.handle_signals = True
 
     def compile(self,
                 common_state: Optional[CommonState] = None,
-                name: Optional[str] = None):
+                name: Optional[str] = None,
+                handle_signals: bool = True):
         self.name = self.__class__.__name__ if name is None else name
         self.logger = setup_logger(self.name)
-        if common_state is None:  # is it root stream
-            self._handle_signals = True
-        else:
+        if common_state is not None:
             self.common_state = common_state
+        self.handle_signals = handle_signals
         self._compiled = True
 
     def wait(self, timeout: Optional[float] = None):

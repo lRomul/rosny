@@ -23,11 +23,14 @@ class ComposeStream(BaseStream, metaclass=abc.ABCMeta):
                 name: Optional[str] = None,
                 handle_signals: bool = True):
         self.on_compile_begin()
-        super().compile(common_state=common_state, name=name)
+        super().compile(common_state=common_state,
+                        name=name,
+                        handle_signals=handle_signals)
         for stream_name, stream in self._streams.items():
             stream.compile(
                 common_state=self.common_state,
-                name=f"{self.name}/{stream_name}"
+                name=f"{self.name}/{stream_name}",
+                handle_signals=False
             )
         self.on_compile_end()
 
@@ -38,7 +41,7 @@ class ComposeStream(BaseStream, metaclass=abc.ABCMeta):
         self.on_start_begin()
         for stream in self._streams.values():
             stream.start()
-        if self._handle_signals:
+        if self.handle_signals:
             start_signals(self)
         self.on_start_end()
         self.logger.info("Stream started")
@@ -48,7 +51,7 @@ class ComposeStream(BaseStream, metaclass=abc.ABCMeta):
         self.on_stop_begin()
         for stream in self._streams.values():
             stream.stop()
-        if self._handle_signals:
+        if self.handle_signals:
             stop_signals(self)
         self.on_stop_end()
         self.logger.info("Stream stopped")

@@ -62,9 +62,12 @@ class LoopStream(BaseStream, metaclass=abc.ABCMeta):
 
     def compile(self,
                 common_state: Optional[CommonState] = None,
-                name: Optional[str] = None):
+                name: Optional[str] = None,
+                handle_signals: bool = True):
         self.on_compile_begin()
-        super().compile(common_state=common_state, name=name)
+        super().compile(common_state=common_state,
+                        name=name,
+                        handle_signals=handle_signals)
         self.on_compile_end()
 
     def start(self):
@@ -76,7 +79,7 @@ class LoopStream(BaseStream, metaclass=abc.ABCMeta):
                 self.common_state.clear_exit()
                 self.on_start_begin()
                 self._start_driver()
-                if self._handle_signals:
+                if self.handle_signals:
                     start_signals(self)
                 self.on_start_end()
                 self.logger.info("Stream started")
@@ -90,7 +93,7 @@ class LoopStream(BaseStream, metaclass=abc.ABCMeta):
         if not self.stopped():
             self.on_stop_begin()
             self._stop_driver()
-            if self._handle_signals:
+            if self.handle_signals:
                 stop_signals(self)
             self.on_stop_end()
             self.logger.info("Stream stopped")
