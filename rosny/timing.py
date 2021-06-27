@@ -33,8 +33,8 @@ class LoopRateManager:
         self._loop_rate = None
         self._loop_time = None
         self._sleep_delay = None
-        self._time_meter = LoopTimeMeter()
-        self._prev_time = time.perf_counter()
+        self._prev_delay_time = time.perf_counter()
+        self._prev_sleep_time = time.perf_counter()
 
         self.loop_rate = loop_rate
         self.min_sleep = min_sleep
@@ -47,8 +47,8 @@ class LoopRateManager:
         else:
             self._loop_time = 1.0 / self.loop_rate
             self._sleep_delay = 0.
-        self._time_meter.reset()
-        self._prev_time = time.perf_counter()
+        self._prev_delay_time = time.perf_counter()
+        self._prev_sleep_time = time.perf_counter()
 
     def reset(self):
         self._build(self._loop_rate)
@@ -66,18 +66,20 @@ class LoopRateManager:
             if self.min_sleep:
                 time.sleep(self.min_sleep)
         else:
-            self._time_meter.end()
-            self._sleep_delay += self._time_meter.mean - self._loop_time
+            now_time = time.perf_counter()
+            self._sleep_delay += (now_time
+                                  - self._prev_delay_time
+                                  - self._loop_time) * self._loop_time
             self._sleep_delay = max(self._sleep_delay, 0)
+            self._prev_delay_time = now_time
 
             sleep_time = (self._loop_time
-                          + self._prev_time
+                          + self._prev_sleep_time
                           - time.perf_counter()
                           - self._sleep_delay)
             sleep_time = max(self.min_sleep, sleep_time)
-
             time.sleep(sleep_time)
-            self._prev_time = time.perf_counter()
+            self._prev_sleep_time = time.perf_counter()
 
 
 class Profiler:
