@@ -78,11 +78,11 @@ class TestProcessStream:
         assert stream._driver.is_alive()
 
     def test_wait(self, stream, time_meter):
-        time_meter.start()
         stream.start()
-        stream.wait(timeout=0.1)
+        time_meter.start()
+        stream.wait(timeout=1.0)
         time_meter.end()
-        assert pytest.approx(time_meter.mean, abs=0.05) == 0.1
+        assert pytest.approx(time_meter.mean, abs=0.05) == 1.0
 
     def test_stop(self, stream):
         stream.start()
