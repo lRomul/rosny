@@ -130,9 +130,9 @@ class TestProcessStream:
         assert stream.joined()
 
     def test_min_sleep(self, stream):
-        stream.rate_manager.min_sleep = 0.01
+        stream.rate_manager.min_sleep = 0.1
         stream.start()
-        stream.wait(timeout=0.1)
+        stream.wait(timeout=1)
         assert stream.count.value <= 11
 
     def test_double_start(self, stream):
