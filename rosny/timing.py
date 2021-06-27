@@ -70,7 +70,6 @@ class LoopRateManager:
             self._sleep_delay += (now_time
                                   - self._prev_delay_time
                                   - self._loop_time) * self._loop_time
-            self._sleep_delay = max(self._sleep_delay, 0)
             self._prev_delay_time = now_time
 
             sleep_time = (self._loop_time

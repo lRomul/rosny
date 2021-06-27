@@ -12,7 +12,7 @@ class Counter:
 
 class CountStream(ThreadStream):
     def __init__(self, counter: Counter):
-        super().__init__(loop_rate=10)
+        super().__init__(loop_rate=10, profile_interval=1)
         self.counter = counter
         self.lock = Lock()
 
