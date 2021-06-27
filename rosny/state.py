@@ -5,7 +5,7 @@ from multiprocessing import Event, Manager
 class CommonState:
     def __init__(self):
         self._manager: Optional[Manager] = Manager()
-        self.profile_stats = self._manager.dict()
+        self.profile_stats: dict = self._manager.dict()
         self._exit_event = Event()
 
     def set_exit(self):
