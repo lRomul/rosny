@@ -26,6 +26,22 @@ run:
 		$(COMMAND)
 	docker attach $(NAME)
 
+.PHONY: run-x11
+run-x11:
+	xhost local:root
+	docker run --rm -dit \
+		-v /tmp/.X11-unix:/tmp/.X11-unix \
+		-v $(HOME)/.Xauthority:/root/.Xauthority \
+		-e DISPLAY=$(shell echo ${DISPLAY}) \
+		$(OPTIONS) \
+		--net=host \
+		--ipc=host \
+		-v $(shell pwd):/workdir \
+		--name=$(NAME) \
+		$(NAME) \
+		$(COMMAND)
+	docker attach $(NAME)
+
 .PHONY: attach
 attach:
 	docker attach $(NAME)
