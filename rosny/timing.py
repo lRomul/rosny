@@ -87,17 +87,17 @@ class Profiler:
         self._stream = stream
         self.interval = interval
         self._time_meter = LoopTimeMeter()
-        self._restart_time = time.perf_counter()
+        self._last_profile_time = time.perf_counter()
 
     def reset(self, stream: BaseStream):
         self._stream = stream
         self._time_meter.reset()
-        self._restart_time = time.perf_counter()
+        self._last_profile_time = time.perf_counter()
 
     def profile(self):
         if self.interval is not None:
             self._time_meter.end()
-            if self._time_meter.last_time - self._restart_time > self.interval:
+            if self._time_meter.last_time - self._last_profile_time > self.interval:
                 loop_time = self._time_meter.mean
                 loop_rate = 1 / loop_time if loop_time else float('inf')
                 self._stream.common_state.profile_stats[self._stream.name] = loop_time
@@ -106,4 +106,4 @@ class Profiler:
                 )
 
                 self._time_meter.reset()
-                self._restart_time = time.perf_counter()
+                self._last_profile_time = time.perf_counter()
