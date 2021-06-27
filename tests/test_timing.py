@@ -45,7 +45,6 @@ class TestLoopRateManager:
         # test reset
         rate_manager.reset()
         assert rate_manager._sleep_delay == 0.
-        assert rate_manager._time_meter.mean == 0.0
         assert rate_manager._loop_time == 1 / (loop_rate * 2)
 
     def test_no_limit_loop_timing(self, time_meter):
