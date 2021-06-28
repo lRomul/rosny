@@ -1,6 +1,6 @@
-import cv2
+import cv2  # type: ignore
 import argparse
-import mediapipe
+import mediapipe  # type: ignore
 import numpy as np
 
 from rosny import CommonState, ThreadStream, ComposeStream
@@ -22,6 +22,7 @@ class VideoStream(ThreadStream):
     def __init__(self, source=0):
         super().__init__(profile_interval=5)
         self.video = cv2.VideoCapture(source)
+        self.fps = self.video.get(cv2.CAP_PROP_FPS)
 
     def work(self):
         success, image = self.video.read()
@@ -35,8 +36,8 @@ class VideoStream(ThreadStream):
 
 
 class SelfieSegmentationStream(ThreadStream):
-    def __init__(self):
-        super().__init__(loop_rate=24, profile_interval=5)
+    def __init__(self, loop_rate):
+        super().__init__(loop_rate=loop_rate, profile_interval=5)
         self.selfie_segmentation = mediapipe.solutions\
             .selfie_segmentation.SelfieSegmentation(model_selection=1)
 
@@ -49,8 +50,8 @@ class SelfieSegmentationStream(ThreadStream):
 
 
 class VisualizeStream(ThreadStream):
-    def __init__(self):
-        super().__init__(loop_rate=24)
+    def __init__(self, loop_rate):
+        super().__init__(loop_rate=loop_rate, profile_interval=5)
 
     def work(self):
         image = self.common_state.image
@@ -69,9 +70,9 @@ class MainStream(ComposeStream):
     def __init__(self, source):
         super().__init__()
         self.video_stream = VideoStream(source)
-        self.selfie_stream = SelfieSegmentationStream()
-        self.visualize_stream = VisualizeStream()
-        self.compile(common_state=State())
+        self.selfie_stream = SelfieSegmentationStream(self.video_stream.fps)
+        self.visualize_stream = VisualizeStream(self.video_stream.fps)
+        self.compile(common_state=State())  # Share custom common_state between streams
 
 
 if __name__ == "__main__":
