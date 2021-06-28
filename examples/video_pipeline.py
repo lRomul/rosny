@@ -1,7 +1,8 @@
-import cv2  # type: ignore
 import argparse
+
+import cv2  # type: ignore
 import mediapipe  # type: ignore
-import numpy as np
+import numpy as np   # type: ignore
 
 from rosny import CommonState, ThreadStream, ComposeStream
 

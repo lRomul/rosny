@@ -5,7 +5,7 @@ import pytest
 from typing import Optional
 from multiprocessing import Value, Manager
 
-from rosny import ThreadStream, ProcessStream
+from rosny import CommonState, ThreadStream, ProcessStream
 from rosny.signal import SignalException
 
 
@@ -66,6 +66,20 @@ class TestProcessStream:
         assert stream._compiled
         assert stream.name == 'CustomStream'
         assert stream.logger.name == 'CustomStream'
+
+    def test_compile_arguments(self, stream):
+        state = CommonState()
+        assert not stream.compiled()
+        assert not stream._compiled
+        assert stream.name.startswith('CustomStream-')
+        assert stream.name == stream.logger.name
+        stream.compile(common_state=state, name='stream_name', handle_signals=False)
+        assert stream.compiled()
+        assert stream._compiled
+        assert stream.name == 'stream_name'
+        assert stream.logger.name == 'stream_name'
+        assert stream.common_state is state
+        assert not stream.handle_signals
 
     def test_start(self, stream):
         assert not stream.compiled()
