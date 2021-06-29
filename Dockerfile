@@ -1,7 +1,10 @@
 FROM python:3.9
 
 RUN apt-get update &&\
-    apt-get install libsm6 libxext6 libgl1-mesa-glx -y
+    apt-get install -y --no-install-recommends \
+    libsm6 libxext6 libgl1-mesa-glx &&\
+    apt-get clean &&\
+    rm -rf /var/lib/apt/lists/*
 
 # Tests requirements
 COPY ./tests/requirements.txt /tests_requirements.txt
