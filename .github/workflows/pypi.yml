@@ -1,14 +1,12 @@
-name: Upload Python Package
+name: PyPI
 
 on:
   release:
     types: [created]
 
 jobs:
-  deploy:
-
+  pypi:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python
