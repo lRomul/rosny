@@ -1,0 +1,14 @@
+site_name: rosny
+site_url: https://lRomul.github.io/rosny/
+site_description: Simple library for building concurrency systems
+
+repo_name: lRomul/rosny
+repo_url: https://github.com/lRomul/rosny
+
+theme:
+  name: material
+
+markdown_extensions:
+- admonition
+- pymdownx.highlight
+- pymdownx.superfences
