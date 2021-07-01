@@ -16,7 +16,7 @@ class ProcessStream(LoopStream, metaclass=abc.ABCMeta):
                          min_sleep=min_sleep,
                          profile_interval=profile_interval,
                          daemon=daemon)
-        self._driver = None
+        self._driver: Optional[Process] = None
         self._stopped = Value('i', 1)
 
     def work_loop(self):
@@ -34,13 +34,14 @@ class ProcessStream(LoopStream, metaclass=abc.ABCMeta):
     def _stop_driver(self):
         self._stopped.value = 1
 
-    def _join_driver(self, timeout):
-        self._driver.join(timeout)
-        if self._driver.is_alive():
-            self.logger.error(f"Process '{self._driver}' join timeout {timeout}")
-        else:
-            self._driver = None
-            self.common_state.clear_exit()
+    def _join_driver(self, timeout: Optional[float] = None):
+        if self._driver is not None:
+            self._driver.join(timeout)
+            if self._driver.is_alive():
+                self.logger.error(f"Process '{self._driver}' join timeout {timeout}")
+            else:
+                self._driver = None
+                self.common_state.clear_exit()
 
     def stopped(self) -> bool:
         return self._stopped.value

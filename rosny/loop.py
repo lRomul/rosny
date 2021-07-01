@@ -1,5 +1,5 @@
 import abc
-from typing import Optional, Union
+from typing import Optional, Union, Any
 
 from rosny.state import CommonState
 from rosny.abstract import BaseStream
@@ -15,7 +15,7 @@ class LoopStream(BaseStream, metaclass=abc.ABCMeta):
                  daemon: bool = False):
         super().__init__()
         self.daemon = daemon
-        self._driver = None
+        self._driver: Optional[Any] = None
         self.rate_manager = LoopRateManager(loop_rate=loop_rate,
                                             min_sleep=min_sleep)
         self.profiler = Profiler(stream=self, interval=profile_interval)
@@ -57,7 +57,7 @@ class LoopStream(BaseStream, metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def _join_driver(self, timeout):
+    def _join_driver(self, timeout: Optional[float] = None):
         pass
 
     def compile(self,
