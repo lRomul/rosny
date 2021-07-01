@@ -5,7 +5,7 @@ _default_handlers = {sig: signal.getsignal(signal.SIGINT) for sig in _signals}
 
 
 class SignalException(BaseException):
-    def __init__(self, signum, frame):
+    def __init__(self, signum: signal.Signals, frame):
         message = f"Handle signal: {signal.Signals(signum).name}"
         super().__init__(message)
         self.signum = signum
@@ -13,7 +13,7 @@ class SignalException(BaseException):
 
 
 def start_signals(stream):
-    def signal_handler(signum, frame):
+    def signal_handler(signum: signal.Signals, frame):
         exception = SignalException(signum, frame)
         stream.logger.error(exception)
         stream.stop()

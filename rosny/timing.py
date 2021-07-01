@@ -30,9 +30,9 @@ class LoopRateManager:
     def __init__(self,
                  loop_rate: Optional[float] = None,
                  min_sleep: float = 1e-9):
-        self._loop_rate = None
-        self._loop_time = None
-        self._sleep_delay = None
+        self._loop_rate: Optional[float] = None
+        self._loop_time: Optional[float] = None
+        self._sleep_delay: Optional[float] = None
         self._time_meter = LoopTimeMeter()
         self._prev_time = time.perf_counter()
 
@@ -54,11 +54,11 @@ class LoopRateManager:
         self._build(self._loop_rate)
 
     @property
-    def loop_rate(self):
+    def loop_rate(self) -> Optional[float]:
         return self._loop_rate
 
     @loop_rate.setter
-    def loop_rate(self, value):
+    def loop_rate(self, value: Optional[float]):
         self._build(value)
 
     def timing(self):

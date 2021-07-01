@@ -20,11 +20,11 @@ class CommonState:
     def exit_is_set(self) -> bool:
         return self._exit_event.is_set()
 
-    def __getstate__(self):
+    def __getstate__(self) -> dict:
         state = self.__dict__.copy()
         del state["_manager"]
         return state
 
-    def __setstate__(self, state):
+    def __setstate__(self, state: dict):
         self.__dict__.update(state)
         self._manager = None
