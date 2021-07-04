@@ -1,10 +1,4 @@
-# rosny
-
-[![PyPI version](https://badge.fury.io/py/rosny.svg)](https://badge.fury.io/py/rosny)
-[![Test](https://github.com/lRomul/rosny/actions/workflows/test.yml/badge.svg)](https://github.com/lRomul/rosny/actions/workflows/test.yml)
-[![CodeFactor](https://www.codefactor.io/repository/github/lromul/rosny/badge)](https://www.codefactor.io/repository/github/lromul/rosny)
-[![codecov](https://codecov.io/gh/lRomul/rosny/branch/master/graph/badge.svg?token=VPB9M1RAVP)](https://codecov.io/gh/lRomul/rosny)
-[![Downloads](https://static.pepy.tech/personalized-badge/rosny?period=total&units=international_system&left_color=grey&right_color=brightgreen&left_text=Downloads)](https://pepy.tech/project/rosny)
+<a href="https://lromul.github.io/rosny/"><img src="https://raw.githubusercontent.com/lRomul/rosny/master/docs/logo/rosny_logo_bg.svg" alt="ROSNY"></a>
 
 rosny is a simple library for building concurrency systems.
 

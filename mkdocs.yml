@@ -5,8 +5,24 @@ site_description: Simple library for building concurrency systems
 repo_name: lRomul/rosny
 repo_url: https://github.com/lRomul/rosny
 
+extra_css:
+  - stylesheets/extra.css
+
 theme:
   name: material
+  favicon: logo/rosny_logomark.svg
+  logo: logo/rosny_inverse_logomark.svg
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/eye-outline
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/eye
+        name: Switch to light mode
 
 markdown_extensions:
 - admonition
