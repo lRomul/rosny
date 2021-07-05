@@ -28,6 +28,7 @@ class VideoStream(ThreadStream):
     def work(self):
         success, image = self.video.read()
         if success:
+            image = cv2.flip(image, 1)
             self.common_state.image = image
         else:
             self.common_state.set_exit()
@@ -46,6 +47,7 @@ class SelfieSegmentationStream(ThreadStream):
         image = self.common_state.image
         if image is not None:
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            image.flags.writeable = False
             output = self.selfie_segmentation.process(image)
             self.common_state.selfie_output = output
 
