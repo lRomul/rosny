@@ -1,6 +1,6 @@
-<a href="https://lromul.github.io/rosny/"><img src="https://raw.githubusercontent.com/lRomul/rosny/master/docs/logo/rosny_logo_bg.svg" alt="ROSNY"></a>
+[![ROSNY](logo/rosny_logo_bg.svg)](https://lromul.github.io/rosny/)
 
-rosny is a simple library for building concurrency systems.
+rosny is a lightweight library for building concurrent systems.
 
 ## Installation
 

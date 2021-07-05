@@ -10,7 +10,7 @@
 
 </div>
 
-rosny is a simple library for building concurrency systems.
+rosny is a lightweight library for building concurrent systems.
 
 ## Installation
 
