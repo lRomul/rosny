@@ -25,7 +25,7 @@ setup(
     author='Ruslan Baikulov',
     author_email='ruslan1123@gmail.com',
     url='https://github.com/lRomul/rosny',
-    description='A simple library for building concurrency applications.',
+    description='Lightweight library for building concurrent systems.',
     long_description=read('README.md'),
     long_description_content_type='text/markdown',
     license='MIT',

@@ -1,6 +1,6 @@
 site_name: rosny
 site_url: https://lRomul.github.io/rosny/
-site_description: Simple library for building concurrency systems
+site_description: Lightweight library for building concurrent systems
 
 repo_name: lRomul/rosny
 repo_url: https://github.com/lRomul/rosny
