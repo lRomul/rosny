@@ -2,9 +2,9 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   width="300mm"
+   width="400mm"
    height="100mm"
-   viewBox="0 0 300 100"
+   viewBox="0 0 400 100"
    version="1.1"
    id="svg5"
    xmlns="http://www.w3.org/2000/svg"
@@ -15,9 +15,9 @@
      id="layer1"
      style="display:inline">
     <rect
-       style="fill:#e4e4d5;fill-opacity:1;fill-rule:evenodd;stroke-width:0.264999;stroke-opacity:0.745098"
+       style="fill:#f2f2ea;fill-opacity:1;fill-rule:evenodd;stroke-width:0.305994;stroke-opacity:0.745098"
        id="rect852"
-       width="300"
+       width="400"
        height="100"
        x="1.0658141e-14"
        y="8.8817842e-16"
@@ -25,24 +25,24 @@
     <circle
        style="fill:#1b1b2a;fill-opacity:1;fill-rule:evenodd;stroke-width:0.216864;stroke-opacity:0.745098"
        id="path861"
-       cx="64.82502"
+       cx="114.82502"
        cy="50"
        r="38.147381" />
     <circle
        style="fill:#895da3;fill-opacity:1;fill-rule:evenodd;stroke-width:0.198179;stroke-opacity:0.745098"
        id="path1151"
-       cx="64.82502"
+       cx="114.82502"
        cy="50"
        r="32.891876" />
     <circle
        style="fill:#1b1b2a;fill-opacity:1;fill-rule:evenodd;stroke-width:0.268197;stroke-opacity:0.745098"
        id="path1357"
-       cx="64.82502"
+       cx="114.82502"
        cy="50"
        r="13.727566" />
     <g
        aria-label="ROSNY"
-       transform="matrix(1.0404233,0,0,0.96114726,-1.4022002e-6,-2.604626e-6)"
+       transform="matrix(1.0404233,0,0,0.96114726,49.999998,-2.604626e-6)"
        id="text1970"
        style="font-weight:500;font-size:70.6126px;line-height:1.25;font-family:'Heading Pro';-inkscape-font-specification:'Heading Pro, Medium';fill:#1b1b2a;stroke-width:1.76532">
       <path
