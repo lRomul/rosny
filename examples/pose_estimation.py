@@ -1,8 +1,10 @@
 import argparse
-from multiprocessing import Queue
+from ctypes import c_uint8
+from multiprocessing import Queue, Array, Lock
 
 import cv2  # type: ignore
 import mediapipe  # type: ignore
+import numpy as np  # type: ignore
 
 from rosny import ProcessStream, ComposeStream
 
@@ -12,10 +14,37 @@ parser.add_argument("-i", "--input", default=0,
 args = parser.parse_args()
 
 
+def get_video_params(source):
+    video = cv2.VideoCapture(source)
+    width = video.get(cv2.CAP_PROP_FRAME_WIDTH)
+    height = video.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    fps = video.get(cv2.CAP_PROP_FPS)
+    video.release()
+    frame_size = int(height), int(width), 3
+    return frame_size, fps
+
+
+class SharedArray:
+    def __init__(self, shape, ctype=c_uint8):
+        self.shape = tuple(shape)
+        self.lock = Lock()
+        array = Array(ctype, int(np.prod(self.shape)))
+        self.np_array = np.frombuffer(array.get_obj(), dtype=ctype)
+        self.np_array = self.np_array.reshape(self.shape)
+
+    def set(self, array):
+        with self.lock:
+            self.np_array[:] = array
+
+    def get(self):
+        with self.lock:
+            return self.np_array.copy()
+
+
 class VideoStream(ProcessStream):
-    def __init__(self, image_queue: Queue, source=0):
-        super().__init__(profile_interval=5)
-        self.image_queue = image_queue
+    def __init__(self, loop_rate, shared_image: SharedArray, source=0):
+        super().__init__(loop_rate=loop_rate, profile_interval=5)
+        self.shared_image = shared_image
         self.source = source
         self.video = None
 
@@ -25,7 +54,7 @@ class VideoStream(ProcessStream):
     def work(self):
         success, image = self.video.read()
         if success:
-            self.image_queue.put(image, timeout=1)
+            self.shared_image.set(image)
         else:
             self.common_state.set_exit()
 
@@ -34,9 +63,9 @@ class VideoStream(ProcessStream):
 
 
 class PoseEstimationStream(ProcessStream):
-    def __init__(self, image_queue: Queue, result_queue: Queue):
-        super().__init__(profile_interval=5)
-        self.image_queue = image_queue
+    def __init__(self, loop_rate, shared_image: SharedArray, result_queue: Queue):
+        super().__init__(loop_rate=loop_rate, profile_interval=5)
+        self.shared_image = shared_image
         self.result_queue = result_queue
         self.pose_estimation = None
 
@@ -48,20 +77,22 @@ class PoseEstimationStream(ProcessStream):
         )
 
     def work(self):
-        bgr_image = self.image_queue.get(timeout=1)
+        bgr_image = self.shared_image.get()
         image = cv2.cvtColor(bgr_image, cv2.COLOR_BGR2RGB)
         image.flags.writeable = False
         output = self.pose_estimation.process(image)
-        self.result_queue.put((bgr_image, output.pose_landmarks), timeout=1)
+        self.result_queue.put(output.pose_landmarks, timeout=1)
 
 
 class VisualizeStream(ProcessStream):
-    def __init__(self, result_queue: Queue):
+    def __init__(self, shared_image: SharedArray, result_queue: Queue):
         super().__init__(profile_interval=5)
+        self.shared_image = shared_image
         self.result_queue = result_queue
 
     def work(self):
-        image, pose_landmarks = self.result_queue.get(timeout=1)
+        pose_landmarks = self.result_queue.get(timeout=1)
+        image = self.shared_image.get()
         mediapipe.solutions.drawing_utils.draw_landmarks(
             image, pose_landmarks,
             mediapipe.solutions.pose.POSE_CONNECTIONS
@@ -74,11 +105,12 @@ class VisualizeStream(ProcessStream):
 class MainStream(ComposeStream):
     def __init__(self, source):
         super().__init__()
-        image_queue = Queue()
+        image_size, fps = get_video_params(source)
+        shared_image = SharedArray(image_size)
         result_queue = Queue()
-        self.video_stream = VideoStream(image_queue, source)
-        self.pose_stream = PoseEstimationStream(image_queue, result_queue)
-        self.visualize_stream = VisualizeStream(result_queue)
+        self.video_stream = VideoStream(fps, shared_image, source)
+        self.pose_stream = PoseEstimationStream(fps, shared_image, result_queue)
+        self.visualize_stream = VisualizeStream(shared_image, result_queue)
 
 
 if __name__ == "__main__":
