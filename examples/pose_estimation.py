@@ -3,7 +3,6 @@ from multiprocessing import Queue
 
 import cv2  # type: ignore
 import mediapipe  # type: ignore
-import numpy as np  # type: ignore
 
 from rosny import ProcessStream, ComposeStream
 
@@ -26,11 +25,11 @@ class VideoStream(ProcessStream):
     def work(self):
         success, image = self.video.read()
         if success:
-            self.image_queue.put(image, timeout=5)
+            self.image_queue.put(image, timeout=1)
         else:
             self.common_state.set_exit()
 
-    def on_join_end(self):
+    def on_work_loop_end(self):
         self.video.release()
 
 
@@ -49,11 +48,11 @@ class PoseEstimationStream(ProcessStream):
         )
 
     def work(self):
-        bgr_image = self.image_queue.get(timeout=5)
+        bgr_image = self.image_queue.get(timeout=1)
         image = cv2.cvtColor(bgr_image, cv2.COLOR_BGR2RGB)
         image.flags.writeable = False
         output = self.pose_estimation.process(image)
-        self.result_queue.put((bgr_image, output.pose_landmarks), timeout=5)
+        self.result_queue.put((bgr_image, output.pose_landmarks), timeout=1)
 
 
 class VisualizeStream(ProcessStream):
@@ -62,7 +61,7 @@ class VisualizeStream(ProcessStream):
         self.result_queue = result_queue
 
     def work(self):
-        image, pose_landmarks = self.result_queue.get(timeout=5)
+        image, pose_landmarks = self.result_queue.get(timeout=1)
         mediapipe.solutions.drawing_utils.draw_landmarks(
             image, pose_landmarks,
             mediapipe.solutions.pose.POSE_CONNECTIONS
