@@ -24,25 +24,28 @@ def get_video_params(source):
     return frame_size, fps
 
 
-class SharedArray:
-    def __init__(self, shape, ctype=c_uint8):
+class NumpyArray:
+    """NumPy array on shared memory"""
+    def __init__(self, shape: tuple, ctype=c_uint8):
         self.shape = tuple(shape)
         self.lock = Lock()
-        array = Array(ctype, int(np.prod(self.shape)))
-        self.np_array = np.frombuffer(array.get_obj(), dtype=ctype)
+        self.array = Array(ctype, int(np.prod(self.shape)))
+        self.np_array = np.frombuffer(self.array.get_obj(), dtype=ctype)
         self.np_array = self.np_array.reshape(self.shape)
 
-    def set(self, array):
-        with self.lock:
-            self.np_array[:] = array
-
-    def get(self):
+    @property
+    def value(self) -> np.ndarray:
         with self.lock:
             return self.np_array.copy()
 
+    @value.setter
+    def value(self, array: np.ndarray):
+        with self.lock:
+            self.np_array[:] = array
+
 
 class VideoStream(ProcessStream):
-    def __init__(self, loop_rate, shared_image: SharedArray, source=0):
+    def __init__(self, loop_rate, shared_image: NumpyArray, source=0):
         super().__init__(loop_rate=loop_rate, profile_interval=5)
         self.shared_image = shared_image
         self.source = source
@@ -54,7 +57,7 @@ class VideoStream(ProcessStream):
     def work(self):
         success, image = self.video.read()
         if success:
-            self.shared_image.set(image)
+            self.shared_image.value = image
         else:
             self.common_state.set_exit()
 
@@ -63,7 +66,7 @@ class VideoStream(ProcessStream):
 
 
 class PoseEstimationStream(ProcessStream):
-    def __init__(self, loop_rate, shared_image: SharedArray, result_queue: Queue):
+    def __init__(self, loop_rate, shared_image: NumpyArray, result_queue: Queue):
         super().__init__(loop_rate=loop_rate, profile_interval=5)
         self.shared_image = shared_image
         self.result_queue = result_queue
@@ -77,22 +80,21 @@ class PoseEstimationStream(ProcessStream):
         )
 
     def work(self):
-        bgr_image = self.shared_image.get()
-        image = cv2.cvtColor(bgr_image, cv2.COLOR_BGR2RGB)
+        image = cv2.cvtColor(self.shared_image.value, cv2.COLOR_BGR2RGB)
         image.flags.writeable = False
         output = self.pose_estimation.process(image)
         self.result_queue.put(output.pose_landmarks, timeout=1)
 
 
 class VisualizeStream(ProcessStream):
-    def __init__(self, shared_image: SharedArray, result_queue: Queue):
+    def __init__(self, shared_image: NumpyArray, result_queue: Queue):
         super().__init__(profile_interval=5)
         self.shared_image = shared_image
         self.result_queue = result_queue
 
     def work(self):
         pose_landmarks = self.result_queue.get(timeout=1)
-        image = self.shared_image.get()
+        image = self.shared_image.value
         mediapipe.solutions.drawing_utils.draw_landmarks(
             image, pose_landmarks,
             mediapipe.solutions.pose.POSE_CONNECTIONS
@@ -106,7 +108,7 @@ class MainStream(ComposeStream):
     def __init__(self, source):
         super().__init__()
         image_size, fps = get_video_params(source)
-        shared_image = SharedArray(image_size)
+        shared_image = NumpyArray(image_size)
         result_queue = Queue()
         self.video_stream = VideoStream(fps, shared_image, source)
         self.pose_stream = PoseEstimationStream(fps, shared_image, result_queue)
