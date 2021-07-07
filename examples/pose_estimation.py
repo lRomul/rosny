@@ -1,6 +1,6 @@
 import argparse
 from ctypes import c_uint8
-from multiprocessing import Queue, Array, Lock
+from multiprocessing import Queue, Array, Lock, set_start_method
 
 import cv2  # type: ignore
 import mediapipe  # type: ignore
@@ -11,6 +11,9 @@ from rosny import ProcessStream, ComposeStream
 parser = argparse.ArgumentParser()
 parser.add_argument("-i", "--input", default=0,
                     help="Source of video. Defaults to webcam.")
+parser.add_argument("-m", "--method", default="default", type=str,
+                    help="A method to start child processes, "
+                         "value can be 'fork', 'spawn' or 'forkserver'.")
 args = parser.parse_args()
 
 
@@ -28,20 +31,24 @@ class NumpyArray:
     """NumPy array on shared memory"""
     def __init__(self, shape: tuple, ctype=c_uint8):
         self.shape = tuple(shape)
+        self.ctype = ctype
         self.lock = Lock()
         self.array = Array(ctype, int(np.prod(self.shape)))
-        self.np_array = np.frombuffer(self.array.get_obj(), dtype=ctype)
-        self.np_array = self.np_array.reshape(self.shape)
+
+    def _numpy_array(self) -> np.ndarray:
+        return np.ndarray(self.shape,
+                          dtype=self.ctype,
+                          buffer=self.array.get_obj())
 
     @property
     def value(self) -> np.ndarray:
         with self.lock:
-            return self.np_array.copy()
+            return self._numpy_array().copy()
 
     @value.setter
     def value(self, array: np.ndarray):
         with self.lock:
-            self.np_array[:] = array
+            self._numpy_array()[:] = array
 
 
 class VideoStream(ProcessStream):
@@ -116,6 +123,9 @@ class MainStream(ComposeStream):
 
 
 if __name__ == "__main__":
+    if args.method != "default":
+        set_start_method(args.method)
+
     stream = MainStream(args.input)
     stream.start()
     stream.wait()
