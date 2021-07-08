@@ -4,7 +4,6 @@ from typing import Optional, Union, Any
 from rosny.state import CommonState
 from rosny.abstract import BaseStream
 from rosny.timing import LoopRateManager, Profiler
-from rosny.signal import start_signals, stop_signals
 
 
 class LoopStream(BaseStream, metaclass=abc.ABCMeta):
