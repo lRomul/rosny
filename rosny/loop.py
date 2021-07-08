@@ -74,13 +74,9 @@ class LoopStream(BaseStream, metaclass=abc.ABCMeta):
         self.logger.info("Starting stream")
         if self.stopped():
             if self.joined():
-                if not self.compiled():
-                    self.compile()
-                self.common_state.clear_exit()
+                self._actions_before_start()
                 self.on_start_begin()
                 self._start_driver()
-                if self.handle_signals:
-                    start_signals(self)
                 self.on_start_end()
                 self.logger.info("Stream started")
             else:
@@ -93,9 +89,8 @@ class LoopStream(BaseStream, metaclass=abc.ABCMeta):
         if not self.stopped():
             self.on_stop_begin()
             self._stop_driver()
-            if self.handle_signals:
-                stop_signals(self)
             self.on_stop_end()
+            self._actions_after_stop()
             self.logger.info("Stream stopped")
         else:
             self.logger.error("Stream is already stopped")

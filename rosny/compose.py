@@ -4,7 +4,6 @@ from typing import Optional, Dict
 
 from rosny.abstract import BaseStream, AbstractStream
 from rosny.state import CommonState
-from rosny.signal import start_signals, stop_signals
 
 
 class ComposeStream(BaseStream, metaclass=abc.ABCMeta):
@@ -35,14 +34,11 @@ class ComposeStream(BaseStream, metaclass=abc.ABCMeta):
         self.on_compile_end()
 
     def start(self):
-        if not self.compiled():
-            self.compile()
         self.logger.info("Starting stream")
+        self._actions_before_start()
         self.on_start_begin()
         for stream in self._streams.values():
             stream.start()
-        if self.handle_signals:
-            start_signals(self)
         self.on_start_end()
         self.logger.info("Stream started")
 
@@ -51,9 +47,8 @@ class ComposeStream(BaseStream, metaclass=abc.ABCMeta):
         self.on_stop_begin()
         for stream in self._streams.values():
             stream.stop()
-        if self.handle_signals:
-            stop_signals(self)
         self.on_stop_end()
+        self._actions_after_stop()
         self.logger.info("Stream stopped")
 
     def join(self, timeout: Optional[float] = None):

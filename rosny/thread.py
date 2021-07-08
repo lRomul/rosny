@@ -36,7 +36,6 @@ class ThreadStream(LoopStream, metaclass=abc.ABCMeta):
                 self.logger.error(f"Thread '{self._driver}' join timeout {timeout}")
             else:
                 self._driver = None
-                self.common_state.clear_exit()
 
     def stopped(self) -> bool:
         return self._stopped

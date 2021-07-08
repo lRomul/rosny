@@ -3,6 +3,7 @@ from typing import Optional
 
 from rosny.state import CommonState
 from rosny.utils import setup_logger, default_object_name
+from rosny.signal import start_signals, stop_signals
 
 
 class AbstractStream(metaclass=abc.ABCMeta):
@@ -92,6 +93,18 @@ class BaseStream(AbstractStream, metaclass=abc.ABCMeta):
             self.logger.info("Waiting ended, exit event is set")
         else:
             self.logger.info("Waiting ended, timeout exceeded")
+
+    def _actions_before_start(self):
+        if not self.compiled():
+            self.compile()
+        self.common_state.clear_exit()
+        if self.handle_signals:
+            start_signals(self)
+
+    def _actions_after_stop(self):
+        self.common_state.clear_exit()
+        if self.handle_signals:
+            stop_signals(self)
 
     def compiled(self) -> bool:
         return self._compiled
