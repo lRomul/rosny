@@ -155,7 +155,19 @@ class TestProcessStream:
         driver = stream._driver
         stream.start()
         assert stream._driver is driver
+        stream.wait(0.1)
         stream.stop()
+        stream.join()
+        assert stream._driver is None
+
+        assert stream.compiled() and stream.stopped() and stream.joined()
+        stream.start()
+        assert stream.compiled() and not stream.stopped() and not stream.joined()
+        new_driver = stream._driver
+        assert new_driver is not driver
+        stream.wait(0.1)
+        stream.stop()
+        assert stream._driver is new_driver
         stream.join()
         assert stream._driver is None
 
