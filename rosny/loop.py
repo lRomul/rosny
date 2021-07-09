@@ -23,8 +23,8 @@ class LoopStream(BaseStream, metaclass=abc.ABCMeta):
     def work(self):
         pass
 
-    def work_loop(self):
-        self.on_work_loop_begin()
+    def loop(self):
+        self.on_loop_begin()
         try:
             self.rate_manager.reset()
             self.profiler.reset(self)
@@ -35,16 +35,16 @@ class LoopStream(BaseStream, metaclass=abc.ABCMeta):
         except (Exception, KeyboardInterrupt) as exception:
             self.on_catch_exception(exception)
         finally:
-            self.on_work_loop_end()
+            self.on_loop_end()
 
     def on_catch_exception(self, exception: Union[Exception, KeyboardInterrupt]):
         self.logger.exception(exception)
         self.common_state.set_exit()
 
-    def on_work_loop_begin(self):
+    def on_loop_begin(self):
         pass
 
-    def on_work_loop_end(self):
+    def on_loop_end(self):
         pass
 
     @abc.abstractmethod

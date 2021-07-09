@@ -58,7 +58,7 @@ class VideoStream(ProcessStream):
         self.source = source
         self.video = None
 
-    def on_work_loop_begin(self):
+    def on_loop_begin(self):
         self.video = cv2.VideoCapture(self.source)
 
     def work(self):
@@ -68,7 +68,7 @@ class VideoStream(ProcessStream):
         else:
             self.common_state.set_exit()
 
-    def on_work_loop_end(self):
+    def on_loop_end(self):
         self.video.release()
 
 
@@ -79,7 +79,7 @@ class PoseEstimationStream(ProcessStream):
         self.result_queue = result_queue
         self.pose_estimation = None
 
-    def on_work_loop_begin(self):
+    def on_loop_begin(self):
         self.pose_estimation = mediapipe.solutions.pose.Pose(
             min_detection_confidence=0.5,
             min_tracking_confidence=0.5,

@@ -19,7 +19,7 @@ class ThreadStream(LoopStream, metaclass=abc.ABCMeta):
         self._stopped = True
 
     def _start_driver(self):
-        self._driver = Thread(target=self.work_loop,
+        self._driver = Thread(target=self.loop,
                               name=self.name,
                               daemon=self.daemon)
         self.logger.info(f"Starting thread {self.name}")

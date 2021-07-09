@@ -19,12 +19,12 @@ class ProcessStream(LoopStream, metaclass=abc.ABCMeta):
         self._driver: Optional[Process] = None
         self._stopped = Value('i', 1)
 
-    def work_loop(self):
+    def loop(self):
         self.logger = setup_logger(self.name)  # necessary for spawn and forkserver
-        super().work_loop()
+        super().loop()
 
     def _start_driver(self):
-        self._driver = Process(target=self.work_loop,
+        self._driver = Process(target=self.loop,
                                name=self.name,
                                daemon=self.daemon)
         self.logger.info(f"Starting process {self.name}")

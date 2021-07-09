@@ -221,18 +221,18 @@ class TestProcessStream:
                 self.callback_history += ['on_catch_exception']
                 super().on_catch_exception(exception)
 
-            def on_work_loop_begin(self):
-                self.callback_history += ['on_work_loop_begin']
+            def on_loop_begin(self):
+                self.callback_history += ['on_loop_begin']
 
-            def on_work_loop_end(self):
-                self.callback_history += ['on_work_loop_end']
+            def on_loop_end(self):
+                self.callback_history += ['on_loop_end']
 
         stream = CallbackStream()
         stream.start()
         stream.wait()
         time.sleep(0.1)
         assert stream.callback_history[:] == [
-            'on_work_loop_begin', 'on_catch_exception', 'on_work_loop_end'
+            'on_loop_begin', 'on_catch_exception', 'on_loop_end'
         ]
         stream.stop()
         stream.join()
