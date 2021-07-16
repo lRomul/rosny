@@ -2,6 +2,13 @@ NAME?=rosny
 COMMAND?=bash
 OPTIONS?=
 
+GPUS?=all
+ifeq ($(GPUS),none)
+	GPUS_OPTION=
+else
+	GPUS_OPTION=--gpus=$(GPUS)
+endif
+
 .PHONY: all
 all: stop build run
 
@@ -18,6 +25,7 @@ stop:
 run:
 	docker run --rm -dit \
 		$(OPTIONS) \
+		$(GPUS_OPTION) \
 		--net=host \
 		--ipc=host \
 		-v $(shell pwd):/workdir \
@@ -34,6 +42,7 @@ run-x11:
 		-v $(HOME)/.Xauthority:/root/.Xauthority \
 		-e DISPLAY=$(shell echo ${DISPLAY}) \
 		$(OPTIONS) \
+		$(GPUS_OPTION) \
 		--net=host \
 		--ipc=host \
 		-v $(shell pwd):/workdir \
