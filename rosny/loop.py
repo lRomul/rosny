@@ -24,8 +24,8 @@ class LoopStream(BaseStream, metaclass=abc.ABCMeta):
         pass
 
     def loop(self):
-        self.on_loop_begin()
         try:
+            self.on_loop_begin()
             self.rate_manager.reset()
             self.profiler.reset(self)
             while not self.stopped():
