@@ -41,7 +41,7 @@ def stream(custom_stream_class):
     stream.join()
 
 
-class TestProcessStream:
+class TestLoopStream:
     def test_init(self, custom_stream_class):
         stream = custom_stream_class(loop_rate=30.0, min_sleep=0.001)
         assert stream.init_param is None
@@ -117,13 +117,13 @@ class TestProcessStream:
         assert stream._driver is None
 
     def test_loop_rate_work(self, stream):
-        stream.rate_manager.loop_rate = 120
+        stream.rate_manager.loop_rate = 60
         stream.profiler.interval = 1
         stream.start()
         stream.wait(timeout=3.0)
-        assert pytest.approx(stream.count.value, rel=0.05) == 360
+        assert pytest.approx(stream.count.value, rel=0.05) == 180
         loop_time = stream.common_state.profile_stats[stream.name]
-        assert pytest.approx(loop_time, rel=0.05) == 1 / 120
+        assert pytest.approx(loop_time, rel=0.05) == 1 / 60
 
     def test_join_timeout(self, loop_stream_class, time_meter):
         class SleepStream(loop_stream_class):
@@ -262,3 +262,8 @@ class TestProcessStream:
         assert stream._driver.daemon == daemon
         stream.stop()
         stream.join()
+
+    def test_del_not_stopped(self, custom_stream_class):
+        stream = custom_stream_class()
+        stream.start()
+        stream.__del__()
