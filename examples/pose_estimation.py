@@ -107,7 +107,7 @@ class VisualizeStream(ProcessStream):
             mediapipe.solutions.pose.POSE_CONNECTIONS
         )
         cv2.imshow('MediaPipe Pose', image)
-        if cv2.waitKey(5) & 0xFF == 27:
+        if cv2.waitKey(1) & 0xFF == 27:
             self.common_state.set_exit()
 
 
@@ -116,7 +116,7 @@ class MainStream(ComposeStream):
         super().__init__()
         image_size, fps = get_video_params(source)
         shared_image = NumpyArray(image_size)
-        result_queue = Queue()
+        result_queue = Queue(maxsize=2)
         self.video_stream = VideoStream(fps, shared_image, source)
         self.pose_stream = PoseEstimationStream(fps, shared_image, result_queue)
         self.visualize_stream = VisualizeStream(shared_image, result_queue)

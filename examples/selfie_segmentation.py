@@ -21,9 +21,9 @@ class State(CommonState):
 
 class VideoStream(ThreadStream):
     def __init__(self, source=0):
-        super().__init__(profile_interval=5)
         self.video = cv2.VideoCapture(source)
         self.fps = self.video.get(cv2.CAP_PROP_FPS)
+        super().__init__(loop_rate=self.fps, profile_interval=5)
 
     def work(self):
         success, image = self.video.read()
@@ -65,7 +65,7 @@ class VisualizeStream(ThreadStream):
             bg_image[:] = (192, 192, 192)
             output_image = np.where(condition, image, bg_image)
             cv2.imshow('MediaPipe Selfie Segmentation', output_image)
-            if cv2.waitKey(5) & 0xFF == 27:
+            if cv2.waitKey(1) & 0xFF == 27:
                 self.common_state.set_exit()
 
 
