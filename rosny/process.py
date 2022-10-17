@@ -43,4 +43,4 @@ class ProcessStream(LoopStream, metaclass=abc.ABCMeta):
                 self._driver = None
 
     def stopped(self) -> bool:
-        return self._stopped.value
+        return self._stopped.value  # type: ignore
