@@ -7,7 +7,7 @@ rosny is a lightweight library for building concurrent systems.
 Tested on:
 
 * Linux
-* Python >= 3.6
+* Python >= 3.7
 
 From pip:
 
