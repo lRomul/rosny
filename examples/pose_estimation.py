@@ -6,7 +6,7 @@ import cv2  # type: ignore
 import mediapipe  # type: ignore
 import numpy as np  # type: ignore
 
-from rosny import ProcessStream, ComposeStream
+from rosny import ProcessNode, ComposeNode
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-i", "--input", default=0,
@@ -51,7 +51,7 @@ class NumpyArray:
             self._numpy_array()[:] = array
 
 
-class VideoStream(ProcessStream):
+class VideoNode(ProcessNode):
     def __init__(self, loop_rate, shared_image: NumpyArray, source=0):
         super().__init__(loop_rate=loop_rate, profile_interval=5)
         self.shared_image = shared_image
@@ -72,7 +72,7 @@ class VideoStream(ProcessStream):
         self.video.release()
 
 
-class PoseEstimationStream(ProcessStream):
+class PoseEstimationNode(ProcessNode):
     def __init__(self, loop_rate, shared_image: NumpyArray, result_queue: Queue):
         super().__init__(loop_rate=loop_rate, profile_interval=5)
         self.shared_image = shared_image
@@ -93,7 +93,7 @@ class PoseEstimationStream(ProcessStream):
         self.result_queue.put(output.pose_landmarks, timeout=1)
 
 
-class VisualizeStream(ProcessStream):
+class VisualizeNode(ProcessNode):
     def __init__(self, shared_image: NumpyArray, result_queue: Queue):
         super().__init__(profile_interval=5)
         self.shared_image = shared_image
@@ -111,23 +111,23 @@ class VisualizeStream(ProcessStream):
             self.common_state.set_exit()
 
 
-class MainStream(ComposeStream):
+class MainNode(ComposeNode):
     def __init__(self, source):
         super().__init__()
         image_size, fps = get_video_params(source)
         shared_image = NumpyArray(image_size)
         result_queue = Queue(maxsize=2)
-        self.video_stream = VideoStream(fps, shared_image, source)
-        self.pose_stream = PoseEstimationStream(fps, shared_image, result_queue)
-        self.visualize_stream = VisualizeStream(shared_image, result_queue)
+        self.video_node = VideoNode(fps, shared_image, source)
+        self.pose_node = PoseEstimationNode(fps, shared_image, result_queue)
+        self.visualize_node = VisualizeNode(shared_image, result_queue)
 
 
 if __name__ == "__main__":
     if args.method != "default":
         set_start_method(args.method)
 
-    stream = MainStream(args.input)
-    stream.start()
-    stream.wait()
-    stream.stop()
-    stream.join()
+    node = MainNode(args.input)
+    node.start()
+    node.wait()
+    node.stop()
+    node.join()

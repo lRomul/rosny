@@ -1,32 +1,32 @@
-from rosny.abstract import AbstractStream
-from rosny.loop import LoopStream
+from rosny.abstract import AbstractNode
+from rosny.loop import LoopNode
 
 
-def test_abstract_stream(monkeypatch):
-    monkeypatch.setattr(AbstractStream, '__abstractmethods__', set())
+def test_abstract_node(monkeypatch):
+    monkeypatch.setattr(AbstractNode, '__abstractmethods__', set())
 
-    class MockAbstractStream(AbstractStream):
+    class MockAbstractNode(AbstractNode):
         pass
 
-    stream = MockAbstractStream()
-    assert stream.compile() is None
-    assert stream.start() is None
-    assert stream.wait() is None
-    assert stream.stop() is None
-    assert stream.join() is None
-    assert stream.compiled() is None
-    assert stream.stopped() is None
-    assert stream.joined() is None
+    node = MockAbstractNode()
+    assert node.compile() is None
+    assert node.start() is None
+    assert node.wait() is None
+    assert node.stop() is None
+    assert node.join() is None
+    assert node.compiled() is None
+    assert node.stopped() is None
+    assert node.joined() is None
 
 
-def test_loop_stream(monkeypatch):
-    monkeypatch.setattr(LoopStream, '__abstractmethods__', set())
+def test_loop_node(monkeypatch):
+    monkeypatch.setattr(LoopNode, '__abstractmethods__', set())
 
-    class MockLoopStream(LoopStream):
+    class MockLoopNode(LoopNode):
         pass
 
-    stream = MockLoopStream()
-    assert stream.work() is None
-    assert stream._start_driver() is None
-    assert stream._stop_driver() is None
-    assert stream._join_driver(None) is None
+    node = MockLoopNode()
+    assert node.work() is None
+    assert node._start_driver() is None
+    assert node._stop_driver() is None
+    assert node._join_driver(None) is None

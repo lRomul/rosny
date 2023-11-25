@@ -1,8 +1,8 @@
 import time
 import pytest
 
-from rosny import ThreadStream, ComposeStream
-from rosny.abstract import AbstractStream
+from rosny import ThreadNode, ComposeNode
+from rosny.abstract import AbstractNode
 
 
 class CountState:
@@ -11,7 +11,7 @@ class CountState:
         self.count2 = 0
 
 
-class CustomStream1(ThreadStream):
+class CustomNode1(ThreadNode):
     def __init__(self, state):
         super().__init__(loop_rate=120)
         self.state = state
@@ -20,7 +20,7 @@ class CustomStream1(ThreadStream):
         self.state.count1 += 1
 
 
-class CustomStream2(ThreadStream):
+class CustomNode2(ThreadNode):
     def __init__(self, state):
         super().__init__(loop_rate=60)
         self.state = state
@@ -29,115 +29,115 @@ class CustomStream2(ThreadStream):
         self.state.count2 += 1
 
 
-class CustomComposeStream(ComposeStream):
+class CustomComposeNode(ComposeNode):
     def __init__(self):
         super().__init__()
         self.state = CountState()
-        self.stream1 = CustomStream1(self.state)
-        self.stream2 = CustomStream2(self.state)
+        self.node1 = CustomNode1(self.state)
+        self.node2 = CustomNode2(self.state)
 
 
 @pytest.fixture(scope='function')
-def compose_stream():
-    stream = CustomComposeStream()
-    yield stream
-    stream.stop()
-    stream.join()
+def compose_node():
+    node = CustomComposeNode()
+    yield node
+    node.stop()
+    node.join()
 
 
-class TestBaseComposeStream:
+class TestBaseComposeNode:
     def test_init(self):
-        stream = CustomComposeStream()
-        assert stream.name.startswith('CustomComposeStream-')
-        assert isinstance(stream.state, CountState)
-        assert len(stream._streams) == 2
-        assert all(isinstance(stream, AbstractStream)
-                   for stream in stream._streams.values())
-        assert stream._streams['stream1'].rate_manager.loop_rate == 120
-        assert stream._streams['stream2'].rate_manager.loop_rate == 60
+        node = CustomComposeNode()
+        assert node.name.startswith('CustomComposeNode-')
+        assert isinstance(node.state, CountState)
+        assert len(node._nodes) == 2
+        assert all(isinstance(node, AbstractNode)
+                   for node in node._nodes.values())
+        assert node._nodes['node1'].rate_manager.loop_rate == 120
+        assert node._nodes['node2'].rate_manager.loop_rate == 60
 
-    def test_compile(self, compose_stream: CustomComposeStream):
-        assert not compose_stream.compiled()
-        assert not compose_stream._compiled
-        assert compose_stream.name.startswith('CustomComposeStream-')
-        assert compose_stream.name == compose_stream.logger.name
-        assert all([not stream.compiled()
-                    for stream in compose_stream._streams.values()])
-        compose_stream.compile()
-        assert compose_stream.compiled()
-        assert compose_stream._compiled
-        assert compose_stream.name == 'CustomComposeStream'
-        assert compose_stream.logger.name == 'CustomComposeStream'
-        assert all([stream.compiled()
-                    for stream in compose_stream._streams.values()])
+    def test_compile(self, compose_node: CustomComposeNode):
+        assert not compose_node.compiled()
+        assert not compose_node._compiled
+        assert compose_node.name.startswith('CustomComposeNode-')
+        assert compose_node.name == compose_node.logger.name
+        assert all([not node.compiled()
+                    for node in compose_node._nodes.values()])
+        compose_node.compile()
+        assert compose_node.compiled()
+        assert compose_node._compiled
+        assert compose_node.name == 'CustomComposeNode'
+        assert compose_node.logger.name == 'CustomComposeNode'
+        assert all([node.compiled()
+                    for node in compose_node._nodes.values()])
 
-    def test_substreams_loop_rate(self, compose_stream):
-        compose_stream.start()
-        compose_stream.wait(timeout=3.0)
-        stream1 = compose_stream._streams['stream1']
-        stream2 = compose_stream._streams['stream2']
+    def test_subnodes_loop_rate(self, compose_node):
+        compose_node.start()
+        compose_node.wait(timeout=3.0)
+        node1 = compose_node._nodes['node1']
+        node2 = compose_node._nodes['node2']
 
-        assert pytest.approx(stream1.state.count1, rel=0.1) == 360
-        assert pytest.approx(stream2.state.count2, rel=0.1) == 180
+        assert pytest.approx(node1.state.count1, rel=0.1) == 360
+        assert pytest.approx(node2.state.count2, rel=0.1) == 180
 
-    def test_start(self, compose_stream: CustomComposeStream):
-        assert compose_stream.stopped()
-        assert all(not stream.compiled() for stream in compose_stream._streams.values())
-        assert all(stream.stopped() for stream in compose_stream._streams.values())
-        assert all(stream.joined() for stream in compose_stream._streams.values())
-        compose_stream.start()
-        assert not compose_stream.stopped()
-        assert all(stream.compiled() for stream in compose_stream._streams.values())
-        assert all(not stream.stopped() for stream in compose_stream._streams.values())
-        assert all(not stream.joined() for stream in compose_stream._streams.values())
+    def test_start(self, compose_node: CustomComposeNode):
+        assert compose_node.stopped()
+        assert all(not node.compiled() for node in compose_node._nodes.values())
+        assert all(node.stopped() for node in compose_node._nodes.values())
+        assert all(node.joined() for node in compose_node._nodes.values())
+        compose_node.start()
+        assert not compose_node.stopped()
+        assert all(node.compiled() for node in compose_node._nodes.values())
+        assert all(not node.stopped() for node in compose_node._nodes.values())
+        assert all(not node.joined() for node in compose_node._nodes.values())
 
-    def test_wait(self, compose_stream: CustomComposeStream, time_meter):
-        compose_stream.start()
+    def test_wait(self, compose_node: CustomComposeNode, time_meter):
+        compose_node.start()
         time_meter.start()
-        compose_stream.wait(timeout=0.1)
+        compose_node.wait(timeout=0.1)
         time_meter.end()
         assert pytest.approx(time_meter.mean, abs=0.05) == 0.1
 
-    def test_stop(self, compose_stream: CustomComposeStream):
-        compose_stream.start()
-        compose_stream.wait(timeout=0.01)
-        assert not compose_stream.stopped()
-        assert all(not stream.stopped() for stream in compose_stream._streams.values())
-        compose_stream.stop()
-        assert compose_stream.stopped()
-        assert all(stream.stopped() for stream in compose_stream._streams.values())
+    def test_stop(self, compose_node: CustomComposeNode):
+        compose_node.start()
+        compose_node.wait(timeout=0.01)
+        assert not compose_node.stopped()
+        assert all(not node.stopped() for node in compose_node._nodes.values())
+        compose_node.stop()
+        assert compose_node.stopped()
+        assert all(node.stopped() for node in compose_node._nodes.values())
 
-    def test_join(self, compose_stream: CustomComposeStream):
-        compose_stream.start()
-        compose_stream.wait(timeout=0.01)
-        compose_stream.stop()
-        assert not compose_stream.joined()
-        assert all(stream.stopped() for stream in compose_stream._streams.values())
-        assert all(not stream.joined() for stream in compose_stream._streams.values())
-        compose_stream.join()
-        assert compose_stream.joined()
-        assert all(stream.stopped() for stream in compose_stream._streams.values())
-        assert all(stream.joined() for stream in compose_stream._streams.values())
+    def test_join(self, compose_node: CustomComposeNode):
+        compose_node.start()
+        compose_node.wait(timeout=0.01)
+        compose_node.stop()
+        assert not compose_node.joined()
+        assert all(node.stopped() for node in compose_node._nodes.values())
+        assert all(not node.joined() for node in compose_node._nodes.values())
+        compose_node.join()
+        assert compose_node.joined()
+        assert all(node.stopped() for node in compose_node._nodes.values())
+        assert all(node.joined() for node in compose_node._nodes.values())
 
     def test_join_timeout(self):
-        class TimeoutStream(ThreadStream):
+        class TimeoutNode(ThreadNode):
             def work(self):
                 time.sleep(1)
 
-        class TimeoutComposeStream(ComposeStream):
+        class TimeoutComposeNode(ComposeNode):
             def __init__(self):
                 super().__init__()
                 self.state = CountState()
-                self.timeout_stream = TimeoutStream()
-                self.stream1 = CustomStream1(self.state)
-                self.stream2 = CustomStream2(self.state)
+                self.timeout_node = TimeoutNode()
+                self.node1 = CustomNode1(self.state)
+                self.node2 = CustomNode2(self.state)
 
-        compose_stream = TimeoutComposeStream()
-        compose_stream.start()
-        compose_stream.wait(timeout=0.01)
-        compose_stream.stop()
-        assert not compose_stream.joined()
-        compose_stream.join(timeout=0.1)
-        assert not compose_stream.joined()
-        compose_stream.join(timeout=1)
-        assert compose_stream.joined()
+        compose_node = TimeoutComposeNode()
+        compose_node.start()
+        compose_node.wait(timeout=0.01)
+        compose_node.stop()
+        assert not compose_node.joined()
+        compose_node.join(timeout=0.1)
+        assert not compose_node.joined()
+        compose_node.join(timeout=1)
+        assert compose_node.joined()

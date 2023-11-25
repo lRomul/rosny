@@ -1,9 +1,9 @@
 import time
 
-from rosny import ComposeStream, ThreadStream, ProcessStream
+from rosny import ComposeNode, ThreadNode, ProcessNode
 
 
-class CpuBoundThreadStream(ThreadStream):
+class CpuBoundThreadNode(ThreadNode):
     def __init__(self, number):
         super().__init__(min_sleep=0)
         self.number = number
@@ -14,14 +14,14 @@ class CpuBoundThreadStream(ThreadStream):
             self.common_state.set_exit()
 
 
-class MainThreadStream(ComposeStream):
+class MainThreadNode(ComposeNode):
     def __init__(self):
         super().__init__()
-        self.stream1 = CpuBoundThreadStream(6_000_000)
-        self.stream2 = CpuBoundThreadStream(6_000_000)
+        self.node1 = CpuBoundThreadNode(6_000_000)
+        self.node2 = CpuBoundThreadNode(6_000_000)
 
 
-class CpuBoundProcessStream(ProcessStream):
+class CpuBoundProcessNode(ProcessNode):
     def __init__(self, number):
         super().__init__(min_sleep=0)
         self.number = number
@@ -32,28 +32,28 @@ class CpuBoundProcessStream(ProcessStream):
             self.common_state.set_exit()
 
 
-class MainProcessStream(ComposeStream):
+class MainProcessNode(ComposeNode):
     def __init__(self):
         super().__init__()
-        self.stream1 = CpuBoundProcessStream(6_000_000)
-        self.stream2 = CpuBoundProcessStream(6_000_000)
+        self.node1 = CpuBoundProcessNode(6_000_000)
+        self.node2 = CpuBoundProcessNode(6_000_000)
 
 
 if __name__ == "__main__":
-    thread_stream = MainThreadStream()
-    thread_stream.start()
+    thread_node = MainThreadNode()
+    thread_node.start()
     start_time = time.time()
-    thread_stream.wait()
+    thread_node.wait()
     end_time = time.time()
-    thread_stream.stop()
-    thread_stream.join()
+    thread_node.stop()
+    thread_node.join()
     print(f"Threading duration {end_time - start_time} seconds.")
 
-    process_stream = MainProcessStream()
-    process_stream.start()
+    process_node = MainProcessNode()
+    process_node.start()
     start_time = time.time()
-    process_stream.wait()
+    process_node.wait()
     end_time = time.time()
-    process_stream.stop()
-    process_stream.join()
+    process_node.stop()
+    process_node.join()
     print(f"Multiprocess duration {end_time - start_time} seconds.")

@@ -6,7 +6,7 @@ from rosny.utils import setup_logger, default_object_name
 from rosny.signal import start_signals, stop_signals
 
 
-class AbstractStream(metaclass=abc.ABCMeta):
+class AbstractNode(metaclass=abc.ABCMeta):
     def on_compile_begin(self):
         pass
 
@@ -67,7 +67,7 @@ class AbstractStream(metaclass=abc.ABCMeta):
         pass
 
 
-class BaseStream(AbstractStream, metaclass=abc.ABCMeta):
+class BaseNode(AbstractNode, metaclass=abc.ABCMeta):
     def __init__(self):
         self.name = default_object_name(self)
         self.logger = setup_logger(self.name)
@@ -87,7 +87,7 @@ class BaseStream(AbstractStream, metaclass=abc.ABCMeta):
         self._compiled = True
 
     def wait(self, timeout: Optional[float] = None):
-        self.logger.info(f"Waiting stream with timeout {timeout}")
+        self.logger.info(f"Waiting node with timeout {timeout}")
         self.common_state.wait_exit(timeout=timeout)
         if self.common_state.exit_is_set():
             self.logger.info("Waiting ended, exit event is set")

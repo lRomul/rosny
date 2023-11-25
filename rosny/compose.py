@@ -2,19 +2,19 @@ import abc
 import time
 from typing import Optional, Dict
 
-from rosny.abstract import BaseStream, AbstractStream
+from rosny.abstract import BaseNode, AbstractNode
 from rosny.state import CommonState
 
 
-class ComposeStream(BaseStream, metaclass=abc.ABCMeta):
+class ComposeNode(BaseNode, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def __init__(self):
         super().__init__()
-        self._streams: Dict[str, AbstractStream] = dict()
+        self._nodes: Dict[str, AbstractNode] = dict()
 
     def __setattr__(self, name, value):
-        if isinstance(value, AbstractStream):
-            self._streams[name] = value
+        if isinstance(value, AbstractNode):
+            self._nodes[name] = value
         object.__setattr__(self, name, value)
 
     def compile(self,
@@ -25,52 +25,52 @@ class ComposeStream(BaseStream, metaclass=abc.ABCMeta):
         super().compile(common_state=common_state,
                         name=name,
                         handle_signals=handle_signals)
-        for stream_name, stream in self._streams.items():
-            stream.compile(
+        for node_name, node in self._nodes.items():
+            node.compile(
                 common_state=self.common_state,
-                name=f"{self.name}/{stream_name}",
+                name=f"{self.name}/{node_name}",
                 handle_signals=False
             )
         self.on_compile_end()
 
     def start(self):
-        self.logger.info("Starting stream")
+        self.logger.info("Starting node")
         self._actions_before_start()
         self.on_start_begin()
-        for stream in self._streams.values():
-            stream.start()
+        for node in self._nodes.values():
+            node.start()
         self.on_start_end()
-        self.logger.info("Stream started")
+        self.logger.info("Node started")
 
     def stop(self):
-        self.logger.info("Stopping stream")
+        self.logger.info("Stopping node")
         self.on_stop_begin()
-        for stream in self._streams.values():
-            stream.stop()
+        for node in self._nodes.values():
+            node.stop()
         self.on_stop_end()
         self._actions_after_stop()
-        self.logger.info("Stream stopped")
+        self.logger.info("Node stopped")
 
     def join(self, timeout: Optional[float] = None):
-        self.logger.info("Joining stream")
+        self.logger.info("Joining node")
         self.on_join_begin()
-        for stream in self._streams.values():
+        for node in self._nodes.values():
             start = time.perf_counter()
-            stream.join(timeout=timeout)
+            node.join(timeout=timeout)
             if timeout is not None:
                 timeout -= time.perf_counter() - start
                 timeout = max(timeout, 0)
         self.on_join_end()
-        self.logger.info("Stream joined")
+        self.logger.info("Node joined")
 
     def stopped(self) -> bool:
-        for stream in self._streams.values():
-            if not stream.stopped():
+        for node in self._nodes.values():
+            if not node.stopped():
                 return False
         return True
 
     def joined(self) -> bool:
-        for stream in self._streams.values():
-            if not stream.joined():
+        for node in self._nodes.values():
+            if not node.joined():
                 return False
         return True

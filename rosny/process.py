@@ -2,11 +2,11 @@ import abc
 from typing import Optional
 from multiprocessing import Process, Value
 
-from rosny.loop import LoopStream
+from rosny.loop import LoopNode
 from rosny.utils import setup_logger
 
 
-class ProcessStream(LoopStream, metaclass=abc.ABCMeta):
+class ProcessNode(LoopNode, metaclass=abc.ABCMeta):
     def __init__(self,
                  loop_rate: Optional[float] = None,
                  min_sleep: float = 1e-9,

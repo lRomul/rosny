@@ -1,12 +1,12 @@
 import pytest
 from multiprocessing import Manager
 
-from rosny import ThreadStream, ProcessStream, ComposeStream
+from rosny import ThreadNode, ProcessNode, ComposeNode
 
 
-@pytest.mark.parametrize('stream_class', [ThreadStream, ProcessStream, ComposeStream])
-def test_stream_callbacks(stream_class):
-    class CallbackStream(stream_class):
+@pytest.mark.parametrize('node_class', [ThreadNode, ProcessNode, ComposeNode])
+def test_node_callbacks(node_class):
+    class CallbackNode(node_class):
         def __init__(self):
             super().__init__()
             self.manager = Manager()
@@ -39,16 +39,16 @@ def test_stream_callbacks(stream_class):
         def on_join_end(self):
             self.callback_history += ['on_join_end']
 
-    stream = CallbackStream()
-    stream.compile()
-    assert stream.callback_history[-2:] == ['on_compile_begin', 'on_compile_end']
-    stream.start()
-    assert stream.callback_history[-2:] == ['on_start_begin', 'on_start_end']
-    stream.stop()
-    assert stream.callback_history[-2:] == ['on_stop_begin', 'on_stop_end']
-    stream.join()
-    assert stream.callback_history[-2:] == ['on_join_begin', 'on_join_end']
-    assert stream.callback_history[:] == [
+    node = CallbackNode()
+    node.compile()
+    assert node.callback_history[-2:] == ['on_compile_begin', 'on_compile_end']
+    node.start()
+    assert node.callback_history[-2:] == ['on_start_begin', 'on_start_end']
+    node.stop()
+    assert node.callback_history[-2:] == ['on_stop_begin', 'on_stop_end']
+    node.join()
+    assert node.callback_history[-2:] == ['on_join_begin', 'on_join_end']
+    assert node.callback_history[:] == [
         'on_compile_begin', 'on_compile_end',
         'on_start_begin', 'on_start_end',
         'on_stop_begin', 'on_stop_end',

@@ -2,10 +2,10 @@ import abc
 from threading import Thread
 from typing import Optional
 
-from rosny.loop import LoopStream
+from rosny.loop import LoopNode
 
 
-class ThreadStream(LoopStream, metaclass=abc.ABCMeta):
+class ThreadNode(LoopNode, metaclass=abc.ABCMeta):
     def __init__(self,
                  loop_rate: Optional[float] = None,
                  min_sleep: float = 1e-9,

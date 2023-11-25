@@ -12,19 +12,19 @@ class SignalException(BaseException):
         self.frame = frame
 
 
-def start_signals(stream):
+def start_signals(node):
     def signal_handler(signum: signal.Signals, frame):
         exception = SignalException(signum, frame)
-        stream.logger.error(exception)
-        stream.stop()
+        node.logger.error(exception)
+        node.stop()
         raise exception
 
     for sig in _signals:
         signal.signal(sig, signal_handler)
-    stream.logger.info("Start handling signals")
+    node.logger.info("Start handling signals")
 
 
-def stop_signals(stream):
+def stop_signals(node):
     for sig in _signals:
         signal.signal(sig, _default_handlers[sig])
-    stream.logger.info("Stop handling signals")
+    node.logger.info("Stop handling signals")

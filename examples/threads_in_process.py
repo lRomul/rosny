@@ -1,7 +1,7 @@
 import multiprocessing
 from queue import Queue
 
-from rosny import CommonState, ThreadStream, ProcessStream, ComposeStream
+from rosny import CommonState, ThreadNode, ProcessNode, ComposeNode
 
 
 class State(CommonState):
@@ -10,7 +10,7 @@ class State(CommonState):
         self.value = multiprocessing.Value("i", 0)
 
 
-class SenderStream(ThreadStream):
+class SenderNode(ThreadNode):
     def __init__(self, queue: Queue):
         super().__init__(loop_rate=30)
         self.queue = queue
@@ -21,7 +21,7 @@ class SenderStream(ThreadStream):
         self.count += 1
 
 
-class ReceiverStream(ThreadStream):
+class ReceiverNode(ThreadNode):
     def __init__(self, queue: Queue):
         super().__init__(profile_interval=3)
         self.queue = queue
@@ -30,38 +30,38 @@ class ReceiverStream(ThreadStream):
         self.common_state.value.value = self.queue.get(timeout=1)
 
 
-class MultiThreadStream(ComposeStream):
+class MultiThreadNode(ComposeNode):
     def __init__(self):
         super().__init__()
         queue = Queue()
-        self.sender = SenderStream(queue)
-        self.receiver = ReceiverStream(queue)
+        self.sender = SenderNode(queue)
+        self.receiver = ReceiverNode(queue)
 
 
-class InProcessStream(ProcessStream):
-    stream: MultiThreadStream
+class InProcessNode(ProcessNode):
+    node: MultiThreadNode
 
     def on_loop_begin(self):
-        self.stream = MultiThreadStream()
-        self.stream.compile(common_state=self.common_state,
-                            name=f"{self.name}/stream",
+        self.node = MultiThreadNode()
+        self.node.compile(common_state=self.common_state,
+                            name=f"{self.name}/node",
                             handle_signals=False)
-        self.stream.start()
+        self.node.start()
 
     def work(self):
-        self.stream.wait(timeout=1)
+        self.node.wait(timeout=1)
 
     def on_loop_end(self):
-        self.stream.stop()
-        self.stream.join()
+        self.node.stop()
+        self.node.join()
 
 
 if __name__ == "__main__":
-    stream = InProcessStream()
+    node = InProcessNode()
     state = State()
-    stream.compile(common_state=state)
-    stream.start()
-    stream.wait(10)
-    stream.stop()
-    stream.join()
+    node.compile(common_state=state)
+    node.start()
+    node.wait(10)
+    node.stop()
+    node.join()
     print("Counter", state.value.value)

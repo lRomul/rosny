@@ -4,7 +4,7 @@ import cv2  # type: ignore
 import mediapipe  # type: ignore
 import numpy as np  # type: ignore
 
-from rosny import CommonState, ThreadStream, ComposeStream
+from rosny import CommonState, ThreadNode, ComposeNode
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-i", "--input", default=0,
@@ -19,7 +19,7 @@ class State(CommonState):
         self.selfie_output = None
 
 
-class VideoStream(ThreadStream):
+class VideoNode(ThreadNode):
     def __init__(self, source=0):
         self.video = cv2.VideoCapture(source)
         self.fps = self.video.get(cv2.CAP_PROP_FPS)
@@ -37,7 +37,7 @@ class VideoStream(ThreadStream):
         self.video.release()
 
 
-class SelfieSegmentationStream(ThreadStream):
+class SelfieSegmentationNode(ThreadNode):
     def __init__(self, loop_rate):
         super().__init__(loop_rate=loop_rate, profile_interval=5)
         self.selfie_segmentation = mediapipe.solutions\
@@ -52,7 +52,7 @@ class SelfieSegmentationStream(ThreadStream):
             self.common_state.selfie_output = output
 
 
-class VisualizeStream(ThreadStream):
+class VisualizeNode(ThreadNode):
     def __init__(self, loop_rate):
         super().__init__(loop_rate=loop_rate, profile_interval=5)
 
@@ -69,18 +69,18 @@ class VisualizeStream(ThreadStream):
                 self.common_state.set_exit()
 
 
-class MainStream(ComposeStream):
+class MainNode(ComposeNode):
     def __init__(self, source):
         super().__init__()
-        self.video_stream = VideoStream(source)
-        self.selfie_stream = SelfieSegmentationStream(self.video_stream.fps)
-        self.visualize_stream = VisualizeStream(self.video_stream.fps)
-        self.compile(common_state=State())  # Share custom common_state between streams
+        self.video_node = VideoNode(source)
+        self.selfie_node = SelfieSegmentationNode(self.video_node.fps)
+        self.visualize_node = VisualizeNode(self.video_node.fps)
+        self.compile(common_state=State())  # Share custom common_state between nodes
 
 
 if __name__ == "__main__":
-    stream = MainStream(args.input)
-    stream.start()
-    stream.wait()
-    stream.stop()
-    stream.join()
+    node = MainNode(args.input)
+    node.start()
+    node.wait()
+    node.stop()
+    node.join()

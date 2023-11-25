@@ -5,18 +5,18 @@ import pytest
 from typing import Optional
 from multiprocessing import Value, Manager
 
-from rosny import CommonState, ThreadStream, ProcessStream
+from rosny import CommonState, ThreadNode, ProcessNode
 from rosny.signal import SignalException
 
 
-@pytest.fixture(scope='module', params=[ThreadStream, ProcessStream])
-def loop_stream_class(request):
+@pytest.fixture(scope='module', params=[ThreadNode, ProcessNode])
+def loop_node_class(request):
     return request.param
 
 
 @pytest.fixture(scope='module')
-def custom_stream_class(loop_stream_class):
-    class CustomStream(loop_stream_class):
+def custom_node_class(loop_node_class):
+    class CustomNode(loop_node_class):
         def __init__(self,
                      loop_rate: Optional[float] = None,
                      min_sleep: float = 1e-9,
@@ -30,184 +30,184 @@ def custom_stream_class(loop_stream_class):
         def work(self):
             self.count.value += 1
 
-    return CustomStream
+    return CustomNode
 
 
 @pytest.fixture(scope='function')
-def stream(custom_stream_class):
-    stream = custom_stream_class()
-    yield stream
-    stream.stop()
-    stream.join()
+def node(custom_node_class):
+    node = custom_node_class()
+    yield node
+    node.stop()
+    node.join()
 
 
-class TestLoopStream:
-    def test_init(self, custom_stream_class):
-        stream = custom_stream_class(loop_rate=30.0, min_sleep=0.001)
-        assert stream.init_param is None
-        assert stream.another_param == 43
-        stream.compile()
-        assert stream.rate_manager.loop_rate == 30.0
-        assert stream.rate_manager.min_sleep == 0.001
+class TestLoopNode:
+    def test_init(self, custom_node_class):
+        node = custom_node_class(loop_rate=30.0, min_sleep=0.001)
+        assert node.init_param is None
+        assert node.another_param == 43
+        node.compile()
+        assert node.rate_manager.loop_rate == 30.0
+        assert node.rate_manager.min_sleep == 0.001
 
-        stream = custom_stream_class(init_param=42)
-        assert stream.init_param == 42
-        assert stream.another_param == 43
-        assert stream.rate_manager.loop_rate is None
-        assert stream.rate_manager.min_sleep == 1e-9
+        node = custom_node_class(init_param=42)
+        assert node.init_param == 42
+        assert node.another_param == 43
+        assert node.rate_manager.loop_rate is None
+        assert node.rate_manager.min_sleep == 1e-9
 
-    def test_compile(self, stream):
-        assert not stream.compiled()
-        assert not stream._compiled
-        assert stream.name.startswith('CustomStream-')
-        assert stream.name == stream.logger.name
-        stream.compile()
-        assert stream.compiled()
-        assert stream._compiled
-        assert stream.name == 'CustomStream'
-        assert stream.logger.name == 'CustomStream'
+    def test_compile(self, node):
+        assert not node.compiled()
+        assert not node._compiled
+        assert node.name.startswith('CustomNode-')
+        assert node.name == node.logger.name
+        node.compile()
+        assert node.compiled()
+        assert node._compiled
+        assert node.name == 'CustomNode'
+        assert node.logger.name == 'CustomNode'
 
-    def test_compile_arguments(self, stream):
+    def test_compile_arguments(self, node):
         state = CommonState()
-        assert not stream.compiled()
-        assert not stream._compiled
-        assert stream.name.startswith('CustomStream-')
-        assert stream.name == stream.logger.name
-        stream.compile(common_state=state, name='stream_name', handle_signals=False)
-        assert stream.compiled()
-        assert stream._compiled
-        assert stream.name == 'stream_name'
-        assert stream.logger.name == 'stream_name'
-        assert stream.common_state is state
-        assert not stream.handle_signals
+        assert not node.compiled()
+        assert not node._compiled
+        assert node.name.startswith('CustomNode-')
+        assert node.name == node.logger.name
+        node.compile(common_state=state, name='node_name', handle_signals=False)
+        assert node.compiled()
+        assert node._compiled
+        assert node.name == 'node_name'
+        assert node.logger.name == 'node_name'
+        assert node.common_state is state
+        assert not node.handle_signals
 
-    def test_start(self, stream):
-        assert not stream.compiled()
-        assert stream.stopped()
-        assert stream.joined()
-        stream.start()
-        assert stream.compiled()
-        assert not stream.stopped()
-        assert not stream.joined()
-        assert stream._driver.is_alive()
+    def test_start(self, node):
+        assert not node.compiled()
+        assert node.stopped()
+        assert node.joined()
+        node.start()
+        assert node.compiled()
+        assert not node.stopped()
+        assert not node.joined()
+        assert node._driver.is_alive()
 
-    def test_wait(self, stream, time_meter):
+    def test_wait(self, node, time_meter):
         time_meter.start()
-        stream.start()
-        stream.wait(timeout=0.1)
+        node.start()
+        node.wait(timeout=0.1)
         time_meter.end()
         assert pytest.approx(time_meter.mean, abs=0.05) == 0.1
 
-    def test_stop(self, stream):
-        stream.start()
-        stream.wait(timeout=0.01)
-        assert not stream.stopped()
-        stream.stop()
-        assert stream.stopped()
+    def test_stop(self, node):
+        node.start()
+        node.wait(timeout=0.01)
+        assert not node.stopped()
+        node.stop()
+        assert node.stopped()
 
-    def test_join(self, stream):
-        stream.start()
-        stream.wait(timeout=0.01)
-        stream.stop()
-        assert stream.stopped()
-        assert not stream.joined()
-        stream.join()
-        assert stream.stopped()
-        assert stream.joined()
-        assert stream._driver is None
+    def test_join(self, node):
+        node.start()
+        node.wait(timeout=0.01)
+        node.stop()
+        assert node.stopped()
+        assert not node.joined()
+        node.join()
+        assert node.stopped()
+        assert node.joined()
+        assert node._driver is None
 
-    def test_loop_rate_work(self, stream):
-        stream.rate_manager.loop_rate = 60
-        stream.profiler.interval = 1
-        stream.start()
-        stream.wait(timeout=3.0)
-        assert pytest.approx(stream.count.value, rel=0.05) == 180
-        loop_time = stream.common_state.profile_stats[stream.name]
+    def test_loop_rate_work(self, node):
+        node.rate_manager.loop_rate = 60
+        node.profiler.interval = 1
+        node.start()
+        node.wait(timeout=3.0)
+        assert pytest.approx(node.count.value, rel=0.05) == 180
+        loop_time = node.common_state.profile_stats[node.name]
         assert pytest.approx(loop_time, rel=0.05) == 1 / 60
 
-    def test_join_timeout(self, loop_stream_class, time_meter):
-        class SleepStream(loop_stream_class):
+    def test_join_timeout(self, loop_node_class, time_meter):
+        class SleepNode(loop_node_class):
             def work(self):
                 time.sleep(3)
 
-        stream = SleepStream()
-        stream.start()
-        stream.wait(1)
-        stream.stop()
-        assert not stream.joined()
+        node = SleepNode()
+        node.start()
+        node.wait(1)
+        node.stop()
+        assert not node.joined()
         time_meter.start()
-        stream.join(timeout=1)
+        node.join(timeout=1)
         time_meter.end()
-        assert not stream.joined()
+        assert not node.joined()
         assert pytest.approx(time_meter.mean, rel=0.05) == 1
-        stream.join()
-        assert stream.joined()
+        node.join()
+        assert node.joined()
 
-    def test_min_sleep(self, stream):
-        stream.rate_manager.min_sleep = 0.1
-        stream.start()
-        stream.wait(timeout=1)
-        assert stream.count.value <= 11
+    def test_min_sleep(self, node):
+        node.rate_manager.min_sleep = 0.1
+        node.start()
+        node.wait(timeout=1)
+        assert node.count.value <= 11
 
-    def test_double_start(self, stream):
-        assert stream._driver is None
-        stream.start()
-        driver = stream._driver
-        stream.start()
-        assert stream._driver is driver
-        stream.wait(0.1)
-        stream.stop()
-        stream.join()
-        assert stream._driver is None
+    def test_double_start(self, node):
+        assert node._driver is None
+        node.start()
+        driver = node._driver
+        node.start()
+        assert node._driver is driver
+        node.wait(0.1)
+        node.stop()
+        node.join()
+        assert node._driver is None
 
-        assert stream.compiled() and stream.stopped() and stream.joined()
-        stream.start()
-        assert stream.compiled() and not stream.stopped() and not stream.joined()
-        new_driver = stream._driver
+        assert node.compiled() and node.stopped() and node.joined()
+        node.start()
+        assert node.compiled() and not node.stopped() and not node.joined()
+        new_driver = node._driver
         assert new_driver is not driver
-        stream.wait(0.1)
-        stream.stop()
-        assert stream._driver is new_driver
-        stream.join()
-        assert stream._driver is None
+        node.wait(0.1)
+        node.stop()
+        assert node._driver is new_driver
+        node.join()
+        assert node._driver is None
 
-    def test_restart(self, stream):
-        stream.start()
-        stream.wait(timeout=1)
-        assert not stream.stopped()
-        stream.stop()
-        stream.join()
-        assert stream.joined()
-        assert stream.stopped()
+    def test_restart(self, node):
+        node.start()
+        node.wait(timeout=1)
+        assert not node.stopped()
+        node.stop()
+        node.join()
+        assert node.joined()
+        assert node.stopped()
 
-        stream.start()
-        stream.wait(timeout=1)
-        assert not stream.stopped()
-        stream.stop()
-        stream.join()
-        assert stream.joined()
-        assert stream.stopped()
-        assert stream.count.value > 30
+        node.start()
+        node.wait(timeout=1)
+        assert not node.stopped()
+        node.stop()
+        node.join()
+        assert node.joined()
+        assert node.stopped()
+        assert node.count.value > 30
 
-    def test_wrong_restart(self, stream):
-        stream.start()
-        driver = stream._driver
-        stream.wait(timeout=1)
-        assert not stream.stopped()
-        stream.stop()
-        assert stream._driver is driver
-        assert stream.stopped()
+    def test_wrong_restart(self, node):
+        node.start()
+        driver = node._driver
+        node.wait(timeout=1)
+        assert not node.stopped()
+        node.stop()
+        assert node._driver is driver
+        assert node.stopped()
 
-        stream.start()
-        assert stream._driver is driver
-        assert stream.stopped()
+        node.start()
+        assert node._driver is driver
+        assert node.stopped()
 
-        stream.join()
-        assert stream._driver is None
-        assert stream.joined()
+        node.join()
+        assert node._driver is None
+        assert node.joined()
 
-    def test_callbacks(self, loop_stream_class):
-        class CallbackStream(loop_stream_class):
+    def test_callbacks(self, loop_node_class):
+        class CallbackNode(loop_node_class):
             def __init__(self):
                 super().__init__()
                 self.manager = Manager()
@@ -227,43 +227,43 @@ class TestLoopStream:
             def on_loop_end(self):
                 self.callback_history += ['on_loop_end']
 
-        stream = CallbackStream()
-        stream.start()
-        stream.wait()
+        node = CallbackNode()
+        node.start()
+        node.wait()
         time.sleep(0.1)
-        assert stream.callback_history[:] == [
+        assert node.callback_history[:] == [
             'on_loop_begin', 'on_catch_exception', 'on_loop_end'
         ]
-        stream.stop()
-        stream.join()
+        node.stop()
+        node.join()
 
-    def test_handle_signal(self, stream):
-        stream.start()
+    def test_handle_signal(self, node):
+        node.start()
         time.sleep(0.1)
         with pytest.raises(SignalException):
             os.kill(os.getpid(), signal.SIGINT)
-            stream.wait()
-        stream.stop()
-        assert stream.stopped()
-        stream.join()
-        assert stream.joined()
+            node.wait()
+        node.stop()
+        assert node.stopped()
+        node.join()
+        assert node.joined()
 
     @pytest.mark.parametrize("daemon", [True, False])
-    def test_daemon(self, loop_stream_class, daemon):
-        class DaemonStream(loop_stream_class):
+    def test_daemon(self, loop_node_class, daemon):
+        class DaemonNode(loop_node_class):
             def __init__(self, daemon):
                 super().__init__(daemon=daemon)
 
             def work(self):
                 time.sleep(0.1)
 
-        stream = DaemonStream(daemon)
-        stream.start()
-        assert stream._driver.daemon == daemon
-        stream.stop()
-        stream.join()
+        node = DaemonNode(daemon)
+        node.start()
+        assert node._driver.daemon == daemon
+        node.stop()
+        node.join()
 
-    def test_del_not_stopped(self, custom_stream_class):
-        stream = custom_stream_class()
-        stream.start()
-        stream.__del__()
+    def test_del_not_stopped(self, custom_node_class):
+        node = custom_node_class()
+        node.start()
+        node.__del__()

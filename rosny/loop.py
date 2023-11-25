@@ -2,11 +2,11 @@ import abc
 from typing import Optional, Union, Any
 
 from rosny.state import CommonState
-from rosny.abstract import BaseStream
+from rosny.abstract import BaseNode
 from rosny.timing import LoopRateManager, Profiler
 
 
-class LoopStream(BaseStream, metaclass=abc.ABCMeta):
+class LoopNode(BaseNode, metaclass=abc.ABCMeta):
     def __init__(self,
                  loop_rate: Optional[float] = None,
                  min_sleep: float = 1e-9,
@@ -17,7 +17,7 @@ class LoopStream(BaseStream, metaclass=abc.ABCMeta):
         self._driver: Optional[Any] = None
         self.rate_manager = LoopRateManager(loop_rate=loop_rate,
                                             min_sleep=min_sleep)
-        self.profiler = Profiler(stream=self, interval=profile_interval)
+        self.profiler = Profiler(node=self, interval=profile_interval)
 
     @abc.abstractmethod
     def work(self):
@@ -70,39 +70,39 @@ class LoopStream(BaseStream, metaclass=abc.ABCMeta):
         self.on_compile_end()
 
     def start(self):
-        self.logger.info("Starting stream")
+        self.logger.info("Starting node")
         if self.stopped():
             if self.joined():
                 self._actions_before_start()
                 self.on_start_begin()
                 self._start_driver()
                 self.on_start_end()
-                self.logger.info("Stream started")
+                self.logger.info("Node started")
             else:
-                self.logger.error("Stream stopped but not joined")
+                self.logger.error("Node stopped but not joined")
         else:
-            self.logger.error("Stream is already started")
+            self.logger.error("Node is already started")
 
     def stop(self):
-        self.logger.info("Stopping stream")
+        self.logger.info("Stopping node")
         if not self.stopped():
             self.on_stop_begin()
             self._stop_driver()
             self.on_stop_end()
             self._actions_after_stop()
-            self.logger.info("Stream stopped")
+            self.logger.info("Node stopped")
         else:
-            self.logger.error("Stream is already stopped")
+            self.logger.error("Node is already stopped")
 
     def join(self, timeout: Optional[float] = None):
-        self.logger.info("Joining stream")
+        self.logger.info("Joining node")
         if not self.joined():
             self.on_join_begin()
             self._join_driver(timeout=timeout)
             self.on_join_end()
-            self.logger.info("Stream joined")
+            self.logger.info("Node joined")
         else:
-            self.logger.error("Stream is already joined")
+            self.logger.error("Node is already joined")
 
     def joined(self) -> bool:
         return self._driver is None

@@ -1,7 +1,7 @@
 import time
 from typing import Optional
 
-from rosny.abstract import BaseStream
+from rosny.abstract import BaseNode
 
 
 class LoopTimeMeter:
@@ -81,14 +81,14 @@ class LoopRateManager:
 
 
 class Profiler:
-    def __init__(self, stream: BaseStream, interval: Optional[float] = None):
-        self._stream = stream
+    def __init__(self, node: BaseNode, interval: Optional[float] = None):
+        self._node = node
         self.interval = interval
         self._time_meter = LoopTimeMeter()
         self._last_profile_time = time.perf_counter()
 
-    def reset(self, stream: BaseStream):
-        self._stream = stream
+    def reset(self, node: BaseNode):
+        self._node = node
         self._time_meter.reset()
         self._last_profile_time = time.perf_counter()
 
@@ -98,8 +98,8 @@ class Profiler:
             if self._time_meter.last_time - self._last_profile_time > self.interval:
                 loop_time = self._time_meter.mean
                 loop_rate = 1 / loop_time if loop_time else float('inf')
-                self._stream.common_state.profile_stats[self._stream.name] = loop_time
-                self._stream.logger.info(
+                self._node.common_state.profile_stats[self._node.name] = loop_time
+                self._node.logger.info(
                     f"Profile - loop time {loop_time:.6g}, loop rate {loop_rate:.4g}"
                 )
 

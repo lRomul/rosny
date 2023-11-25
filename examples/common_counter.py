@@ -2,7 +2,7 @@ import time
 import random
 from threading import Lock
 
-from rosny import ThreadStream, ComposeStream
+from rosny import ThreadNode, ComposeNode
 
 
 class Counter:
@@ -10,7 +10,7 @@ class Counter:
         self.count = 0
 
 
-class CountStream(ThreadStream):
+class CountNode(ThreadNode):
     def __init__(self, counter: Counter):
         super().__init__(loop_rate=10)
         self.counter = counter
@@ -23,25 +23,25 @@ class CountStream(ThreadStream):
             self.logger.info(f'{self.counter.count}')
 
 
-class MainStream(ComposeStream):
+class MainNode(ComposeNode):
     def __init__(self):
         super().__init__()
         counter = Counter()
-        self.stream0 = CountStream(counter)
-        self.stream1 = CountStream(counter)
-        self.stream2 = CountStream(counter)
-        self.stream3 = CountStream(counter)
-        self.stream4 = CountStream(counter)
-        self.stream5 = CountStream(counter)
-        self.stream6 = CountStream(counter)
-        self.stream7 = CountStream(counter)
-        self.stream8 = CountStream(counter)
-        self.stream9 = CountStream(counter)
+        self.node0 = CountNode(counter)
+        self.node1 = CountNode(counter)
+        self.node2 = CountNode(counter)
+        self.node3 = CountNode(counter)
+        self.node4 = CountNode(counter)
+        self.node5 = CountNode(counter)
+        self.node6 = CountNode(counter)
+        self.node7 = CountNode(counter)
+        self.node8 = CountNode(counter)
+        self.node9 = CountNode(counter)
 
 
 if __name__ == "__main__":
-    stream = MainStream()
-    stream.start()
-    stream.wait(60)
-    stream.stop()
-    stream.join()
+    node = MainNode()
+    node.start()
+    node.wait(60)
+    node.stop()
+    node.join()
