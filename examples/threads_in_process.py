@@ -44,8 +44,8 @@ class InProcessNode(ProcessNode):
     def on_loop_begin(self):
         self.node = MultiThreadNode()
         self.node.compile(common_state=self.common_state,
-                            name=f"{self.name}/node",
-                            handle_signals=False)
+                          name=f"{self.name}/node",
+                          handle_signals=False)
         self.node.start()
 
     def work(self):
